@@ -49,13 +49,40 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
         setLocalDishes(updated);
     };
 
+    const getTempRegime = (dish) => {
+        const cat = String(dish.category || '').toLowerCase().trim();
+        const name = String(dish.name || '').toLowerCase().trim();
+
+        if (name.includes('sorvete') || name.includes('picolé') || name.includes('gelo') || cat.includes('congelado')) {
+            return 'frozen';
+        }
+
+        if (cat === 'principal' || cat === 'guarnição' || cat === 'guarnicao' || cat === 'quente' || cat === 'sopa' || cat === 'prato quente' || name.includes('arroz') || name.includes('feijão') || name.includes('feijao') || name.includes('sopa') || name.includes('caldo') || name.includes('carne') || name.includes('frango') || name.includes('peixe') || name.includes('purê') || name.includes('pure') || name.includes('macarrão') || name.includes('macarrao') || name.includes('refogado') || name.includes('assado') || name.includes('cozido')) {
+            return 'hot';
+        }
+
+        return 'cold';
+    };
+
     const validateCVS5 = (dish) => {
-        const isHot = dish.category === 'Principal' || dish.category === 'Guarnição';
+        const regime = getTempRegime(dish);
         const serviceTemp = parseFloat(dish.safety.actualTemp);
         const arrivalTemp = parseFloat(dish.safety.arrivalTemp);
 
-        const serviceDeviant = isHot ? (serviceTemp > 0 && serviceTemp < 60) : (serviceTemp > 10);
-        const arrivalDeviant = isTransported && (isHot ? (arrivalTemp > 0 && arrivalTemp < 60) : (arrivalTemp > 10));
+        let serviceDeviant = false;
+        let arrivalDeviant = false;
+
+        if (regime === 'hot') {
+            serviceDeviant = serviceTemp > 0 && serviceTemp < 60;
+            arrivalDeviant = isTransported && (arrivalTemp > 0 && arrivalTemp < 60);
+        } else if (regime === 'frozen') {
+            serviceDeviant = serviceTemp > -12;
+            arrivalDeviant = isTransported && (arrivalTemp > -12);
+        } else {
+            // cold / default
+            serviceDeviant = serviceTemp > 10;
+            arrivalDeviant = isTransported && (arrivalTemp > 10);
+        }
 
         return {
             serviceDeviant: !!serviceTemp && serviceDeviant,
@@ -126,8 +153,12 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
                     ) : (
                         <div className="grid grid-cols-1 gap-8">
                             {localDishes.map((dish, idx) => {
-                                const validation = validateCVS5(dish);
-                                const isHot = dish.category === 'Principal' || dish.category === 'Guarnição';
+                                const regime = getTempRegime(dish);
+                                const isHot = regime === 'hot';
+                                const isFrozen = regime === 'frozen';
+                                const targetLabel = isHot ? '≥ 60°C' : isFrozen ? '≤ -12°C' : '≤ 10°C';
+                                const targetColor = isHot ? 'text-orange-600' : isFrozen ? 'text-indigo-600' : 'text-cyan-600';
+                                const iconColor = isHot ? 'bg-orange-50 text-orange-600' : isFrozen ? 'bg-indigo-50 text-indigo-600' : 'bg-cyan-50 text-cyan-600';
 
                                 return (
                                     <div key={dish._id || idx} className={`bg-white p-8 rounded-[36px] border-2 transition-all duration-500 ${validation.needsAction ? 'border-red-100 shadow-xl shadow-red-500/5' : 'border-slate-50 shadow-sm hover:shadow-xl hover:shadow-slate-200/30'}`}>
@@ -138,13 +169,13 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
                                                     <span className="text-[9px] font-black uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
                                                         {dish.category}
                                                     </span>
-                                                    <div className={`p-1.5 rounded-lg ${isHot ? 'bg-orange-50 text-orange-600' : 'bg-cyan-50 text-cyan-600'}`}>
+                                                    <div className={`p-1.5 rounded-lg ${iconColor}`}>
                                                         <Clock size={12} />
                                                     </div>
                                                 </div>
                                                 <h4 className="font-black text-slate-900 text-xl leading-tight mb-2 tracking-tight">{dish.name}</h4>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                    Target: <span className={isHot ? 'text-orange-600' : 'text-cyan-600'}>{isHot ? '≥ 60°C' : '≤ 10°C'}</span>
+                                                    Target: <span className={targetColor}>{targetLabel}</span>
                                                 </p>
                                             </div>
 

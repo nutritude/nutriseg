@@ -75,13 +75,18 @@ const MenuPage = () => {
                 const fixedInCategory = (unitToUse.fixedDishes || []).filter(d => d.category === category);
                 initial[category] = Array.from({ length: Math.max(Number(count) || 1, 1) }, (v, i) => {
                     const fixedDish = fixedInCategory[i];
+                    const cat = String(category || '').toLowerCase();
+                    const fixedName = String(fixedDish?.name || '').toLowerCase();
+                    const isFrozen = fixedName.includes('sorvete') || fixedName.includes('gelo') || cat.includes('congelado');
+                    const isHot = cat === 'principal' || cat === 'guarnição' || cat === 'guarnicao' || cat === 'quente' || cat === 'sopa' || cat === 'prato quente' || fixedName.includes('arroz') || fixedName.includes('feijão') || fixedName.includes('sopa');
+
                     return {
                         _id: Math.random().toString(36).substr(2, 9),
                         name: fixedDish?.name || '',
                         allergens: fixedDish?.allergens || [],
                         isFixedItem: !!fixedDish,
                         safety: {
-                            targetTemp: category === 'Principal' || category === 'Guarnição' ? 60 : 10,
+                            targetTemp: isHot ? 60 : isFrozen ? -12 : 10,
                             actualTemp: '',
                             sampleTaken: false,
                             correctiveAction: ''
