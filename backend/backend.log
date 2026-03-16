@@ -1,0 +1,7 @@
+[dotenv@17.3.1] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+✅ Firebase Admin Inicializado com Sucesso (Utilizando arquivo firebase-key.json)
+⏳ Inicializando Conexão com Firebase Firestore...
+✅ Firebase Firestore Conectado com Sucesso!
+🌐 Banco de Dados em Nuvem Ativado (Modo de Alta Disponibilidade)
+✅ Servidor rodando na porta 3000
+👨‍⚕️ Skill de Especialista em Saúde Ativada

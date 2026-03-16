@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-uan-primary: #001f3f;
+  --color-uan-light: #f3f4f6;
+  --color-uan-white: #ffffff;
+  --color-uan-accent: #0074D9;
+}
+
+@layer base {
+  body {
+    @apply bg-uan-light text-gray-800 font-sans;
+  }
+}
