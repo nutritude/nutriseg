@@ -24,7 +24,7 @@ import { useUnit } from '../contexts/UnitContext';
 import SanitaryRadar from '../components/dashboard/SanitaryRadar';
 import CriticalTemperatureCard from '../components/dashboard/CriticalTemperatureCard';
 import WasteStackedBar from '../components/dashboard/WasteStackedBar';
-import ComplianceHeatmap from '../components/dashboard/ComplianceHeatmap';
+import StructuralAnalysis from '../components/dashboard/StructuralAnalysis';
 
 const Home = () => {
     const { selectedUnit: activeUnit, selectUnit } = useUnit();
@@ -268,10 +268,10 @@ const Home = () => {
                 )}
             </AnimatePresence>
 
-            {/* Passo 3: Gráficos Avançados (Radar & Heatmap) */}
+            {/* Passo 3: Gráficos Avançados (Radar & Análise Estrutural) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <SanitaryRadar data={kpis?.radar || {}} />
-                <ComplianceHeatmap units={kpis?.heatmap || []} />
+                <StructuralAnalysis data={kpis?.structural || []} />
             </div>
 
             {/* Passo 4: Operacional & Desperdício */}

@@ -156,6 +156,40 @@ async function seed() {
         console.log(`Log crítico (14.8°C) criado para ${unitRefs[0].name}`);
     }
 
+    // 5. Checklist Submissions (Diversas Situações Analíticas)
+    const submissions = [
+        {
+            unitId: unitRefs[0].id,
+            date: new Date().toISOString(),
+            template: 'cvs5_full',
+            answers: [
+                { questionText: 'Paredes e pisos com infiltração?', answer: 'NC' }, // Estrutura NC
+                { questionText: 'Equipamento de ventilação limpo?', answer: 'C' },  // Estrutura C
+                { questionText: 'Higiene das mãos frequente?', answer: 'C' },      // Higiene C
+                { questionText: 'Planilha de monitoramento em dia?', answer: 'NC' } // Documentação NC
+            ]
+        },
+        {
+            unitId: unitRefs[1].id,
+            date: new Date().toISOString(),
+            template: 'cvs5_full',
+            answers: [
+                { questionText: 'Iluminação adequada?', answer: 'NC' },             // Estrutura NC
+                { questionText: 'Uniforme completo e limpo?', answer: 'NC' },        // Higiene NC
+                { questionText: 'Temperatura da geladeira 4°C?', answer: 'C' },   // Temperatura C
+                { questionText: 'Presença de baratas no ralo?', answer: 'NC' }      // Pragas NC
+            ]
+        }
+    ];
+
+    for (const s of submissions) {
+        await db.collection('checklists_submissions').add({
+            ...s,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`Auditoria completa registrada para ${unitRefs.find(u => u.id === s.unitId).name}`);
+    }
+
     console.log('--- Seed Concluído com Sucesso ---');
     process.exit(0);
 }

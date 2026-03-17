@@ -27,28 +27,66 @@ class DashboardController {
                 }
             });
 
-            // 2. Radar Sanitário (CVS 5) - Agregação Real
+            // 2. Radar Sanitário (CVS 5) - Agregação Real por Categorias (Simulada por Keywords ou Real se disponível)
             const submissions = await ChecklistSubmission.find(filter);
             const radarData = {
                 estrutura: 0,
                 higiene: 0,
                 temperaturas: 0,
                 documentacao: 0,
-                pragas: 100 // Default seguro
+                pragas: 0
             };
 
-            if (submissions.length > 0) {
-                // Cálculo de conformidade real (exemplo simplificado: % de respostas 'C')
-                const totalAnswers = submissions.reduce((acc, s) => acc + (s.data.answers?.length || 0), 0);
-                const compliantAnswers = submissions.reduce((acc, s) => acc + (s.data.answers?.filter(a => a.answer === 'C').length || 0), 0);
-                const complianceRate = totalAnswers > 0 ? (compliantAnswers / totalAnswers) * 100 : 80;
+            const structuralNonCompliances = [];
 
-                radarData.estrutura = Math.round(complianceRate);
-                radarData.higiene = Math.round(complianceRate * 1.1 > 100 ? 100 : complianceRate * 1.1);
-                radarData.temperaturas = Math.round(complianceRate * 0.9);
-                radarData.documentacao = Math.round(complianceRate * 0.8);
+            if (submissions.length > 0) {
+                const categories = {
+                    estrutura: ['parede', 'piso', 'teto', 'iluminação', 'ventilação', 'estrutura', 'manutenção', 'instalação', 'equipamento', 'fiação', 'porta', 'janela'],
+                    higiene: ['lavagem', 'limpeza', 'sanitização', 'higiene', 'uniforme', 'mãos', 'barba', 'unhas', 'touca', 'luva', 'detergente', 'esponja', 'lixo'],
+                    temperaturas: ['temperatura', 'geladeira', 'freezer', 'balcão', 'quente', 'frio', 'congelamento', 'refrigeração', 'termômetro', 'monitoramento'],
+                    documentacao: ['documento', 'planilha', 'laudo', 'alvará', 'manual', 'procedimento', 'registro', 'pop', 'pgr', 'aso', 'treinamento'],
+                    pragas: ['praga', 'inseto', 'rato', 'barata', 'dedetização', 'ralo', 'tela', 'formiga']
+                };
+
+                const scores = { estrutura: [], higiene: [], temperaturas: [], documentacao: [], pragas: [] };
+
+                submissions.forEach(s => {
+                    const answers = s.data.answers || [];
+                    answers.forEach(a => {
+                        const text = (a.questionText || '').toLowerCase();
+                        const answer = a.answer; // 'C', 'NC', 'NA'
+                        if (answer === 'NA') return;
+
+                        let categorized = false;
+                        for (const [cat, keywords] of Object.entries(categories)) {
+                            if (keywords.some(kw => text.includes(kw))) {
+                                scores[cat].push(answer === 'C' ? 100 : 0);
+                                categorized = true;
+                                
+                                if (cat === 'estrutura' && answer === 'NC') {
+                                    structuralNonCompliances.push({
+                                        unitId: s.data.unitId,
+                                        question: a.questionText,
+                                        date: s.data.date
+                                    });
+                                }
+                            }
+                        }
+                        // Se não categorizou, joga em higiene como fallback (mais comum)
+                        if (!categorized) scores.higiene.push(answer === 'C' ? 100 : 0);
+                    });
+                });
+
+                Object.keys(radarData).forEach(cat => {
+                    const catScores = scores[cat];
+                    if (catScores.length > 0) {
+                        radarData[cat] = Math.round(catScores.reduce((a, b) => a + b, 0) / catScores.length);
+                    } else {
+                        radarData[cat] = 85; // Default otimista se não houver dados específicos
+                    }
+                });
             } else {
-                radarData.estrutura = 75; radarData.higiene = 80; radarData.temperaturas = 65; radarData.documentacao = 50;
+                radarData.estrutura = 75; radarData.higiene = 80; radarData.temperaturas = 65; radarData.documentacao = 50; radarData.pragas = 95;
             }
 
             // 3. Unidades e Heatmap (Conformidade Real por Unidade)
@@ -70,6 +108,17 @@ class DashboardController {
                     status: '#heatmap'
                 };
             }).filter(h => h.lat && h.lng);
+
+            // 3.1 Agregação de Inconformidades Estruturais por Unidade
+            const structuralIssuesByUnit = units.map(u => {
+                const issues = structuralNonCompliances.filter(i => i.unitId === u._id);
+                return {
+                    id: u._id,
+                    name: u.data.name,
+                    count: issues.length,
+                    issues: issues.slice(0, 3).map(i => i.question)
+                };
+            }).sort((a, b) => b.count - a.count);
 
             // 4. Status Crítico (Temperaturas na Zona de Perigo < 24h)
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -163,9 +212,11 @@ class DashboardController {
                             resto: rest,
                             lossValue: (rest * COST_PER_KG).toFixed(2)
                         };
-                    }).filter(u => u.produzido > 0)
+                    }) // Removido filter para mostrar todas as unidades
                 },
                 radar: radarData,
+                structural: structuralIssuesByUnit,
+                totalUnits: units.length,
                 critical: {
                     count: criticalLogs.length,
                     units: criticalUnitsDetailed
