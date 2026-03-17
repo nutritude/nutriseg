@@ -1,6 +1,8 @@
 import React from 'react';
 import { Thermometer, MapPin, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { useUnit } from '../../contexts/UnitContext';
 
 const CriticalTemperatureCard = ({ criticalData }) => {
     // criticalData: { count: 3, units: [{id, name}] }

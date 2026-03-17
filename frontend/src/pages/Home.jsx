@@ -11,7 +11,8 @@ import {
     ShieldCheck,
     TrendingUp,
     Users,
-    CheckCircle
+    CheckCircle,
+    Info
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
