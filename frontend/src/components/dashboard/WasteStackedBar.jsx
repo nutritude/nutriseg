@@ -52,6 +52,7 @@ const WasteStackedBar = ({ data }) => {
                     <XAxis 
                         dataKey="name" 
                         tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} 
+                        tickFormatter={(v) => v.length > 12 ? v.substring(0, 12) + '...' : v}
                         axisLine={false} 
                         tickLine={false} 
                         dy={10}

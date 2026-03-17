@@ -205,10 +205,13 @@ class DashboardController {
                     totalKg: totalRestIngesta.toFixed(1),
                     percent: totalServed > 0 ? ((totalRestIngesta / (totalServed * 0.5)) * 100).toFixed(1) : 0,
                     byUnit: units.map(u => {
-                        const unitMenus = menus.filter(m => m.unitId === u._id);
+                        const unitMenus = menus.filter(m => {
+                            const unitId = m.data?.unitId || m.unitId;
+                            return unitId === u._id;
+                        });
                         let prod = 0, rest = 0, sobra = 0;
                         unitMenus.forEach(m => {
-                            m.data.meals?.forEach(meal => {
+                            m.data?.meals?.forEach(meal => {
                                 prod += (meal.stats?.producedQty || 0);
                                 rest += (meal.stats?.restIngestaKg || 0);
                                 sobra += (meal.stats?.leftoverKg || 0);
