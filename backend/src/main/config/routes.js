@@ -138,6 +138,7 @@ module.exports = (app) => {
     router.get('/reports/waste', ReportController.getWasteReport);
     router.get('/reports/employees', ReportController.getEmployeesReport);
     router.get('/reports/performance', ReportController.getPerformanceReport);
+    router.get('/reports/temperatures', ReportController.getTemperaturesReport);
 
     app.use('/api', router);
 };

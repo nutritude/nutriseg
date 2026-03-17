@@ -181,6 +181,76 @@ class ReportController {
             res.status(500).json({ error: error.message });
         }
     }
+    
+    // 6. Relatório Preditivo de Termometria
+    getTemperaturesReport = async (req, res) => {
+        try {
+            const { unitId, period, startDate, endDate } = req.query;
+            const { start, end } = this.getDateFilter(period, startDate, endDate);
+            
+            const menus = await Menu.find();
+            const filteredMenus = menus.filter(m => {
+                const date = new Date(m.data.date || m.data.createdAt);
+                const matchUnit = !unitId || unitId === 'all' || m.data.unitId === unitId;
+                const matchDate = date >= start && date <= end;
+                return matchUnit && matchDate;
+            });
+
+            const reports = [];
+            filteredMenus.forEach(m => {
+                m.data.meals?.forEach(meal => {
+                    meal.dishes?.forEach(dish => {
+                        if (dish.safety?.actualTemp || dish.safety?.arrivalTemp) {
+                            
+                            // Validate rules manually or duplicate logic from UI
+                            const cat = String(dish.category || '').toLowerCase().trim();
+                            const name = String(dish.name || '').toLowerCase().trim();
+                            let isFrozen = name.includes('sorvete') || name.includes('picolé') || name.includes('gelo') || cat.includes('congelado');
+                            let isHot = cat === 'principal' || cat === 'guarnição' || cat === 'guarnicao' || cat === 'quente' || cat === 'sopa' || cat === 'prato quente' || name.includes('arroz') || name.includes('feijão') || name.includes('carne') || name.includes('frango') || name.includes('peixe') || name.includes('purê') || name.includes('macarrão') || name.includes('refogado') || name.includes('assado') || name.includes('cozido');
+                            
+                            const serviceTemp = parseFloat(dish.safety.actualTemp);
+                            const arrivalTemp = parseFloat(dish.safety.arrivalTemp);
+
+                            let serviceDeviant = false;
+                            if (isHot) {
+                                serviceDeviant = serviceTemp > 0 && serviceTemp < 60;
+                            } else if (isFrozen) {
+                                serviceDeviant = serviceTemp > -12;
+                            } else {
+                                serviceDeviant = serviceTemp > 10;
+                            }
+
+                            // Push formatted log
+                            reports.push({
+                                id: m._id + dish.id,
+                                date: dish.safety.measuredAt || m.data.date || m.data.createdAt,
+                                unitId: m.data.unitId,
+                                meal: meal.name,
+                                item: dish.name,
+                                category: dish.category,
+                                regime: isHot ? 'Quente' : (isFrozen ? 'Congelado' : 'Frio'),
+                                targetTemp: isHot ? '≥ 60°C' : (isFrozen ? '≤ -12°C' : '≤ 10°C'),
+                                actualTemp: dish.safety.actualTemp,
+                                arrivalTemp: dish.safety.arrivalTemp,
+                                isCompliant: !serviceDeviant,
+                                auditor: dish.safety.auditor || 'Não Identificado',
+                                deviationReason: dish.safety.deviationReason || null,
+                                correctiveAction: dish.safety.correctiveAction || null,
+                                hasCorrectiveAction: !!dish.safety.correctiveAction
+                            });
+                        }
+                    });
+                });
+            });
+
+            // Sort by most recent
+            reports.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            res.json(reports);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new ReportController();

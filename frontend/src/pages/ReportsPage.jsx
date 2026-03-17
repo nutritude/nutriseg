@@ -14,7 +14,8 @@ import {
     TrendingUp,
     AlertTriangle,
     Clock,
-    UserCircle
+    UserCircle,
+    Thermometer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReportService from '../services/ReportService';
@@ -42,6 +43,7 @@ const ReportsPage = () => {
         { id: 'waste', label: 'Sobra Limpa', icon: Trash2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
         { id: 'employees', label: 'Funcionários', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50' },
         { id: 'performance', label: 'Desempenho (BI)', icon: TrendingUp, color: 'text-orange-500', bg: 'bg-orange-50' },
+        { id: 'temperatures', label: 'Termometria CVS', icon: Thermometer, color: 'text-cyan-500', bg: 'bg-cyan-50' },
     ];
 
     useEffect(() => {
@@ -83,6 +85,9 @@ const ReportsPage = () => {
                     break;
                 case 'performance':
                     res = await ReportService.getPerformanceReport(params);
+                    break;
+                case 'temperatures':
+                    res = await ReportService.getTemperaturesReport(params);
                     break;
                 default:
                     res = [];
@@ -250,6 +255,97 @@ const ReportsPage = () => {
                             ))}
                         </tbody>
                     </table>
+                );
+            case 'temperatures':
+                return (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 mt-2">
+                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex items-center gap-4">
+                                <div className="bg-cyan-100 p-3 rounded-2xl text-cyan-600">
+                                    <Thermometer size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Aferições Totais</p>
+                                    <h4 className="text-2xl font-black text-slate-900">{data.length}</h4>
+                                </div>
+                            </div>
+                            <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100/50 flex items-center gap-4">
+                                <div className="bg-emerald-200/50 p-3 rounded-2xl text-emerald-600">
+                                    <CheckCircle2 size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] uppercase font-black text-emerald-600 tracking-widest">Conformidade</p>
+                                    <h4 className="text-2xl font-black text-emerald-700">
+                                        {data.length > 0 ? ((data.filter(d => d.isCompliant).length / data.length) * 100).toFixed(1) : 0}%
+                                    </h4>
+                                </div>
+                            </div>
+                            <div className="bg-red-50 p-6 rounded-3xl border border-red-100/50 flex items-center gap-4">
+                                <div className="bg-red-200/50 p-3 rounded-2xl text-red-600">
+                                    <AlertTriangle size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] uppercase font-black text-red-600 tracking-widest">Falhas Térmicas</p>
+                                    <h4 className="text-2xl font-black text-red-700">{data.filter(d => !d.isCompliant).length}</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-slate-100">
+                                    <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Data/Hora</th>
+                                    <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Item</th>
+                                    <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Regime</th>
+                                    <th className="pb-4 text-[10px] font-black uppercase text-slate-400 text-center">Auditoria</th>
+                                    <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Diagnóstico / Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {data.map((item, idx) => (
+                                    <tr key={idx} className={`transition-colors ${item.isCompliant ? 'hover:bg-slate-50' : 'bg-red-50/20 hover:bg-red-50/40'}`}>
+                                        <td className="py-4">
+                                            <p className="text-xs font-bold text-slate-900">{new Date(item.date).toLocaleDateString()}</p>
+                                            <p className="text-[10px] text-slate-400 font-bold">{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                        </td>
+                                        <td className="py-4">
+                                            <p className="text-xs font-black text-slate-900">{item.item}</p>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{item.category}</p>
+                                        </td>
+                                        <td className="py-4">
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${item.regime === 'Quente' ? 'text-orange-600 bg-orange-100' : item.regime === 'Congelado' ? 'text-indigo-600 bg-indigo-100' : 'text-cyan-600 bg-cyan-100'}`}>
+                                                {item.targetTemp}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <span className={`text-sm font-black ${item.isCompliant ? 'text-emerald-600' : 'text-red-600'}`}>{item.actualTemp}°C</span>
+                                                <span className="text-[9px] text-slate-400 font-bold max-w-[80px] truncate" title={item.auditor}>
+                                                    @{item.auditor}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4">
+                                            {item.isCompliant ? (
+                                                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                                                    <CheckCircle2 size={12} /> Conforme
+                                                </span>
+                                            ) : (
+                                                <div className="text-[10px]">
+                                                    <p className="font-black text-red-600 uppercase mb-0.5 tracking-wider">{item.deviationReason || 'Fora do Padrão'}</p>
+                                                    {item.hasCorrectiveAction ? (
+                                                        <p className="font-bold text-slate-600 italic">Resp: {item.correctiveAction}</p>
+                                                    ) : (
+                                                        <p className="font-bold text-red-400 uppercase">⚠️ Pendente de Ação</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 );
             default:
                 return null;

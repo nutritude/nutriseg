@@ -5,6 +5,7 @@ import PDFService from '../services/PDFService';
 const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
     const [localDishes, setLocalDishes] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [globalAuditor, setGlobalAuditor] = useState('');
 
     useEffect(() => {
         console.log("TemperatureLogModal - Meal Data:", meal);
@@ -19,9 +20,13 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
                     deviationReason: d.safety?.deviationReason || '',
                     correctiveAction: d.safety?.correctiveAction || '',
                     sampleTaken: d.safety?.sampleTaken || false,
-                    sampleCollectionTime: d.safety?.sampleCollectionTime || new Date().toISOString().slice(0, 16)
+                    sampleCollectionTime: d.safety?.sampleCollectionTime || new Date().toISOString().slice(0, 16),
+                    auditor: d.safety?.auditor || ''
                 }
             })));
+            
+            const existingAuditor = dishesToMap.find(d => d.safety?.auditor)?.safety?.auditor;
+            if (existingAuditor) setGlobalAuditor(existingAuditor);
         } else {
             setLocalDishes([]);
         }
@@ -96,13 +101,20 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
         const hasService = !!dish.safety.actualTemp;
         const hasArrival = isTransported ? !!dish.safety.arrivalTemp : true;
         const hasAction = needsAction ? (!!dish.safety.correctiveAction && !!dish.safety.deviationReason) : true;
-        return hasService && hasArrival && hasAction;
+        return hasService && hasArrival && hasAction && !!globalAuditor;
     });
 
     const handleInternalSave = async () => {
         setIsSaving(true);
         try {
-            await onSave(localDishes);
+            const FinalDishes = localDishes.map(d => ({
+                ...d,
+                safety: {
+                    ...d.safety,
+                    auditor: globalAuditor
+                }
+            }));
+            await onSave(FinalDishes);
             onClose();
         } finally {
             setIsSaving(false);
@@ -137,7 +149,19 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
                             </div>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-4 bg-slate-50 text-slate-400 hover:text-slate-900 rounded-3xl transition-all">
+                    <div className="flex gap-6 items-center flex-1 ml-10">
+                        <div className="flex flex-col gap-1 w-full max-w-sm">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Auditor Responsável (Obrigatório)</label>
+                            <input 
+                                type="text"
+                                placeholder="Digite o nome de quem aferiu..."
+                                value={globalAuditor}
+                                onChange={(e) => setGlobalAuditor(e.target.value)}
+                                className={`w-full p-3 bg-slate-50 border-2 rounded-xl text-xs font-bold focus:ring-4 outline-none transition-all ${!globalAuditor ? 'border-orange-300 focus:border-orange-500 focus:ring-orange-100' : 'border-slate-100 focus:border-blue-500 focus:ring-blue-100'}`}
+                            />
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-4 bg-slate-50 text-slate-400 hover:text-slate-900 rounded-3xl transition-all ml-4">
                         <X size={24} />
                     </button>
                 </div>
