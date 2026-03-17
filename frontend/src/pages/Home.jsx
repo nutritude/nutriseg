@@ -14,7 +14,7 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import UnitService from '../services/UnitService';
 import DashboardService from '../services/DashboardService';
 import { useUnit } from '../contexts/UnitContext';
@@ -158,7 +158,7 @@ const Home = () => {
                             />
                         </div>
                     </div>
-                    <p className="mt-3 text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Total Servido: {kpis?.meals?.served?.toLocaleString()} refeições</p>
+                    <p className="mt-3 text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Total Servido: {(kpis?.meals?.served || 0).toLocaleString()} refeições</p>
                 </div>
 
                 {/* KPI Documentação */}
@@ -247,18 +247,18 @@ const Home = () => {
                         className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
                         {kpis.opportunities.map((opt, idx) => (
-                            <div key={idx} className={`p-4 rounded-2xl border flex items-center gap-4 ${opt.type === 'lucro' ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'}`}>
+                             <div key={idx} className={`p-4 rounded-2xl border flex items-center gap-4 ${opt?.type === 'lucro' ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'}`}>
                                 <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${opt.type === 'lucro' ? 'bg-blue-600 text-white shadow-lg' : 'bg-red-600 text-white shadow-lg'}`}>
-                                    {opt.type === 'lucro' ? <TrendingUp size={24} /> : <AlertTriangle size={24} />}
+                                    {opt?.type === 'lucro' ? <TrendingUp size={24} /> : <AlertTriangle size={24} />}
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                        <h5 className="font-black text-sm uppercase tracking-tight italic">{opt.title}</h5>
-                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${opt.type === 'lucro' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
-                                            {opt.impact}
+                                        <h5 className="font-black text-sm uppercase tracking-tight italic">{opt?.title}</h5>
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${opt?.type === 'lucro' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                            {opt?.impact}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-slate-600 font-medium mt-0.5">{opt.desc}</p>
+                                    <p className="text-xs text-slate-600 font-medium mt-0.5">{opt?.desc}</p>
                                 </div>
                                 <button className="p-2 hover:bg-white/50 rounded-lg transition-all font-black text-blue-600 text-xs uppercase tracking-tighter shrink-0">Explorar &rarr;</button>
                             </div>
@@ -302,12 +302,12 @@ const Home = () => {
                                 <div className="absolute top-0 right-0 w-1 pt-full bg-orange-500 h-full"></div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="h-10 w-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-black">
-                                        {action.employeeName.charAt(0)}
+                                        {(action.employeeName || '?').charAt(0)}
                                     </div>
                                     <span className="text-[9px] font-black uppercase bg-orange-50 text-orange-600 px-2 py-1 rounded-lg">#inapto</span>
                                 </div>
-                                <h4 className="font-black text-slate-800 group-hover:text-blue-600 transition-colors">{action.employeeName}</h4>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-4">{action.role} • {action.unitName}</p>
+                                <h4 className="font-black text-slate-800 group-hover:text-blue-600 transition-colors">{action.employeeName || 'Sem Nome'}</h4>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-4">{action.role || 'Geral'} • {action.unitName || 'Unidade N/A'}</p>
                                 
                                 <div className="space-y-2">
                                     {action.actions.training && (
