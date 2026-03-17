@@ -267,11 +267,11 @@ const TeamPage = () => {
                                             <td className="px-6 py-5">
                                                 <div className="flex items-center gap-4">
                                                     <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-black text-white shadow-lg ${!employee.active ? 'bg-slate-300' : 'bg-blue-600 shadow-blue-200'}`}>
-                                                        {employee.name.charAt(0)}
+                                                        {(employee.name || '?').charAt(0)}
                                                     </div>
                                                     <div>
                                                         <p className={`font-black text-sm leading-tight ${!employee.active ? 'text-slate-400 line-through' : 'text-slate-900 group-hover:text-blue-600 transition-colors'}`}>
-                                                            {employee.name}
+                                                            {employee.name || 'Sem Nome'}
                                                         </p>
                                                         <p className="text-[9px] font-bold text-slate-300 mt-1 uppercase tracking-tighter">ID: {...(employee._id || '').slice(-6)}</p>
                                                     </div>

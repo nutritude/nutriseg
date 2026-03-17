@@ -51,20 +51,7 @@ class DashboardController {
                 radarData.estrutura = 75; radarData.higiene = 80; radarData.temperaturas = 65; radarData.documentacao = 50;
             }
 
-            // 3. Status Crítico (Temperaturas na Zona de Perigo < 24h)
-            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-            const recentLogs = await TemperatureLog.find(); // Idealmente filtraria por data no find
-            const criticalUnits = [];
-            const criticalLogs = recentLogs.filter(log => {
-                const isRecent = new Date(log.data.measurementTime) > twentyFourHoursAgo;
-                if (isRecent && !log.isCompliant) {
-                    criticalUnits.push(log.data.unitId);
-                    return true;
-                }
-                return false;
-            });
-
-            // 4. Heatmap (Conformidade Real por Unidade)
+            // 3. Unidades e Heatmap (Conformidade Real por Unidade)
             const units = await Unit.find();
             const heatmap = units.map(u => {
                 const unitSubmissions = submissions.filter(s => s.data.unitId === u._id);
@@ -84,21 +71,64 @@ class DashboardController {
                 };
             }).filter(h => h.lat && h.lng);
 
+            // 4. Status Crítico (Temperaturas na Zona de Perigo < 24h)
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const recentLogs = await TemperatureLog.find(); 
+            
+            const criticalUnitsMap = {};
+            const criticalLogs = recentLogs.filter(log => {
+                const logDate = log.data.measurementTime ? new Date(log.data.measurementTime) : new Date(log.data.createdAt);
+                const isRecent = logDate > twentyFourHoursAgo;
+                
+                if (isRecent && !log.isCompliant) {
+                    const uId = log.data.unitId;
+                    const unit = units.find(u => u._id === uId);
+                    if (unit) {
+                        criticalUnitsMap[uId] = unit.data.name;
+                    }
+                    return true;
+                }
+                return false;
+            });
+
+            const criticalUnitsDetailed = Object.entries(criticalUnitsMap).map(([id, name]) => ({ id, name }));
+
             // 5. Saúde Ocupacional (RH)
             const employees = await Employee.find(filter);
             const totalEmployees = employees.length;
             const healthyEmployees = employees.filter(e => e.healthCompliance.tag === '#em_dia').length;
-            const expiringSoonCount = employees.filter(e => e.healthCompliance.tag === '#atencao').length;
+            const expiringSoonEmployees = employees.filter(e => e.healthCompliance.tag === '#atencao');
+            const expiringSoonCount = expiringSoonEmployees.length;
             const healthComplianceRate = totalEmployees > 0 ? (healthyEmployees / totalEmployees) * 100 : 0;
 
-            // 6. Documentação das Unidades
-            const activeUnits = (unitId && unitId !== 'all') ? units.filter(u => u._id === unitId) : units;
-            let totalDocs = 0, expiredDocsCount = 0;
-            activeUnits.forEach(u => {
-                const docs = u.toJSON().documentationStatus;
-                if (u.data.sanitaryDocs) totalDocs += u.data.sanitaryDocs.length;
-                if (docs.hasExpired) expiredDocsCount += docs.expiredDocs.length;
+            const healthUnitsInAlertMap = {};
+            expiringSoonEmployees.forEach(e => {
+                const uId = e.data.unitId || e.unitId;
+                const unit = units.find(u => u._id === uId);
+                if (unit) healthUnitsInAlertMap[uId] = unit.data.name;
             });
+            const healthUnitsInAlert = Object.entries(healthUnitsInAlertMap).map(([id, name]) => ({ id, name }));
+
+            // 6. Documentação das Unidades
+            const activeUnitsDocs = (unitId && unitId !== 'all') ? units.filter(u => u._id === unitId) : units;
+            let totalDocs = 0, expiredDocsCount = 0;
+            const docUnitsInAlertMap = {};
+
+            activeUnitsDocs.forEach(u => {
+                const docsStatus = u.toJSON().documentationStatus;
+                if (u.data.sanitaryDocs) totalDocs += u.data.sanitaryDocs.length;
+                if (docsStatus.hasExpired) {
+                    expiredDocsCount += docsStatus.expiredDocs.length;
+                    docUnitsInAlertMap[u._id] = u.data.name;
+                }
+            });
+            const docUnitsInAlert = Object.entries(docUnitsInAlertMap).map(([id, name]) => ({ id, name }));
+
+
+            // 7. Inteligência Financeira (Estimativa de Perda por Desperdício)
+            const COST_PER_KG = 16.50; // Valor médio estimado por kg de alimento pronto
+            const estimatedLossValue = totalRestIngesta * COST_PER_KG;
+            const wasteEfficiency = totalServed > 0 ? (100 - ((totalRestIngesta / (totalServed * 0.5)) * 100)) : 100;
 
             res.json({
                 meals: {
@@ -106,45 +136,94 @@ class DashboardController {
                     contracted: totalContracted,
                     acceptability: totalContracted > 0 ? (totalServed / totalContracted) * 100 : 0
                 },
+                financial: {
+                    estimatedLoss: estimatedLossValue.toFixed(2),
+                    currency: 'R$',
+                    wasteEfficiency: wasteEfficiency.toFixed(1),
+                    potentialSavings: (estimatedLossValue * 0.3).toFixed(2) // 30% de redução possível
+                },
                 waste: {
                     totalKg: totalRestIngesta.toFixed(1),
-                    percent: totalServed > 0 ? ((totalRestIngesta / (totalServed * 0.5)) * 100).toFixed(1) : 0
+                    percent: totalServed > 0 ? ((totalRestIngesta / (totalServed * 0.5)) * 100).toFixed(1) : 0,
+                    byUnit: units.map(u => {
+                        const unitMenus = menus.filter(m => m.unitId === u._id);
+                        let prod = 0, rest = 0, sobra = 0;
+                        unitMenus.forEach(m => {
+                            m.data.meals?.forEach(meal => {
+                                prod += (meal.stats?.producedQty || 0);
+                                rest += (meal.stats?.restIngestaKg || 0);
+                                sobra += (meal.stats?.leftoverKg || 0);
+                            });
+                        });
+                        return { 
+                            id: u._id,
+                            name: u.data.name, 
+                            produzido: prod, 
+                            sobra, 
+                            resto: rest,
+                            lossValue: (rest * COST_PER_KG).toFixed(2)
+                        };
+                    }).filter(u => u.produzido > 0)
                 },
                 radar: radarData,
                 critical: {
                     count: criticalLogs.length,
-                    units: [...new Set(criticalUnits)]
+                    units: criticalUnitsDetailed
                 },
                 health: {
                     complianceRate: Math.round(healthComplianceRate),
                     expiringSoon: expiringSoonCount,
-                    total: totalEmployees
+                    total: totalEmployees,
+                    units: healthUnitsInAlert
                 },
                 docs: {
                     expired: expiredDocsCount,
-                    complianceRate: radarData.documentacao
+                    complianceRate: radarData.documentacao,
+                    units: docUnitsInAlert
                 },
                 heatmap,
-                feeds: criticalLogs.slice(0, 5).map(log => ({
-                    id: log._id,
-                    title: `Alerta: ${log.data.equipment || 'Equipamento'}`,
-                    msg: `Temperatura fora do padrão (${log.data.temperature}°C) na unidade selecionada.`,
-                    date: new Date(log.data.measurementTime).toLocaleTimeString('pt-BR'),
-                    tag: '#critico'
-                })),
+                feeds: criticalLogs.slice(0, 5).map(log => {
+                    const unit = units.find(u => u._id === log.data.unitId);
+                    return {
+                        id: log._id,
+                        unitId: log.data.unitId,
+                        unitName: unit ? unit.data.name : 'Unidade N/A',
+                        title: `${unit ? unit.data.name : 'Alerta'}: ${log.data.equipment || 'Equipamento'}`,
+                        msg: `${log.data.equipment || 'Item'} fora do padrão (${log.data.temperature}°C) na unidade ${unit ? unit.data.name : ''}.`,
+                        date: new Date(log.data.measurementTime || log.data.createdAt).toLocaleTimeString('pt-BR'),
+                        tag: '#critico'
+                    };
+                }),
 
                 // Novo: Ações Corretivas Pendentes (RH/Inaptos)
                 correctiveActions: employees.filter(e => e.healthCompliance.status === 'Inapto').map(e => ({
                     id: e._id,
                     employeeName: e.data.name,
                     role: e.data.role,
-                    unitName: e.unitId?.data?.name || 'Unidade N/A',
+                    unitName: units.find(u => u._id === (e.data.unitId || e.unitId))?.data?.name || 'Unidade N/A',
+                    unitId: e.data.unitId || e.unitId,
                     actions: {
                         training: e.data.correctiveActions?.training || false,
                         medicalExams: e.data.correctiveActions?.medicalExams || false,
                         others: e.data.correctiveActions?.others || ''
                     }
-                }))
+                })),
+
+                // Brain Intelligence: Oportunidades
+                opportunities: [
+                    wasteEfficiency < 90 ? {
+                        type: 'lucro',
+                        title: 'Redução de Desperdício',
+                        impact: `R$ ${(estimatedLossValue * 0.4).toFixed(2)}/mês`,
+                        desc: 'Otimização de cardápio e porcionamento pode recuperar 40% das perdas atuais.'
+                    } : null,
+                    expiringSoonCount > 0 ? {
+                        type: 'risco',
+                        title: 'Conformidade de RH',
+                        impact: 'Fiscalização',
+                        desc: `${expiringSoonCount} colaboradores com exames vencendo. Evite multas trabalhistas.`
+                    } : null
+                ].filter(Boolean)
             });
         } catch (error) {
             console.error('[DASHBOARD ERROR]', error);

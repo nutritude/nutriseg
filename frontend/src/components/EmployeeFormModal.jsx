@@ -58,13 +58,24 @@ const EmployeeFormModal = ({ isOpen, onClose, onSave, employee, units = [], unit
         }
     });
 
+    const safeToISODate = (dateVal) => {
+        if (!dateVal) return '';
+        try {
+            const date = new Date(dateVal);
+            if (isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
+        } catch (e) {
+            return '';
+        }
+    };
+
     useEffect(() => {
         if (employee) {
             setFormData({
                 name: employee.name || '',
                 cpf: employee.cpf || '',
                 rg: employee.rg || '',
-                birthDate: employee.birthDate ? new Date(employee.birthDate).toISOString().split('T')[0] : '',
+                birthDate: safeToISODate(employee.birthDate),
                 gender: employee.gender || '',
                 phone: employee.phone || '',
                 email: employee.email || '',
@@ -81,12 +92,12 @@ const EmployeeFormModal = ({ isOpen, onClose, onSave, employee, units = [], unit
                 unitId: (employee.unitId?._id || employee.unitId) || unitId || '',
                 employmentType: employee.employmentType || 'Próprio',
                 hasFoodContact: employee.hasFoodContact !== undefined ? employee.hasFoodContact : true,
-                admissionDate: employee.admissionDate ? new Date(employee.admissionDate).toISOString().split('T')[0] : '',
+                admissionDate: safeToISODate(employee.admissionDate),
                 health: {
-                    lastASO: employee.health?.lastASO ? new Date(employee.health.lastASO).toISOString().split('T')[0] : '',
-                    coprocultureDate: employee.health?.coprocultureDate ? new Date(employee.health.coprocultureDate).toISOString().split('T')[0] : '',
-                    coproparasitologyDate: employee.health?.coproparasitologyDate ? new Date(employee.health.coproparasitologyDate).toISOString().split('T')[0] : '',
-                    hygieneTrainingDate: employee.health?.hygieneTrainingDate ? new Date(employee.health.hygieneTrainingDate).toISOString().split('T')[0] : ''
+                    lastASO: safeToISODate(employee.health?.lastASO),
+                    coprocultureDate: safeToISODate(employee.health?.coprocultureDate),
+                    coproparasitologyDate: safeToISODate(employee.health?.coproparasitologyDate),
+                    hygieneTrainingDate: safeToISODate(employee.health?.hygieneTrainingDate)
                 },
                 correctiveActions: employee.correctiveActions || {
                     training: false,
