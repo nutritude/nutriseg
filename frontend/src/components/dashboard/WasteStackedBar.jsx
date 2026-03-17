@@ -47,20 +47,22 @@ const WasteStackedBar = ({ data }) => {
             </div>
             
             <ResponsiveContainer width="100%" height="80%">
-                <BarChart data={data} margin={{ top: 20, right: 30, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <BarChart data={data} layout="vertical" margin={{ top: 20, right: 30, left: 50, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                     <XAxis 
-                        dataKey="name" 
+                        type="number"
                         tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} 
-                        tickFormatter={(v) => v.length > 12 ? v.substring(0, 12) + '...' : v}
                         axisLine={false} 
                         tickLine={false} 
-                        dy={10}
                     />
                     <YAxis 
+                        type="category"
+                        dataKey="name" 
+                        tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} 
+                        tickFormatter={(v) => v.length > 20 ? v.substring(0, 20) + '...' : v}
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} 
+                        width={120}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc', radius: 12 }} />
                     <Legend 
@@ -69,9 +71,9 @@ const WasteStackedBar = ({ data }) => {
                         align="right" 
                         wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}
                     />
-                    <Bar dataKey="produzido" name="Produzido" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={25} />
-                    <Bar dataKey="sobra" name="Sobra Limpa" fill="#10b981" radius={[6, 6, 0, 0]} barSize={25} />
-                    <Bar dataKey="resto" name="Resto-Ingesta" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={25} />
+                    <Bar dataKey="produzido" name="Produzido" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={12} />
+                    <Bar dataKey="sobra" name="Sobra Limpa" fill="#10b981" radius={[0, 6, 6, 0]} barSize={12} />
+                    <Bar dataKey="resto" name="Resto-Ingesta" fill="#ef4444" radius={[0, 6, 6, 0]} barSize={12} />
                 </BarChart>
             </ResponsiveContainer>
         </div>

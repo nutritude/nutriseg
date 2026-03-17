@@ -38,7 +38,7 @@ const ReportsPage = () => {
 
     const tabs = [
         { id: 'non-conformities', label: 'Não-Conformidades', icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50' },
-        { id: 'requests', label: 'Solicitações', icon: FileText, icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50' },
+        { id: 'requests', label: 'Solicitações', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50' },
         { id: 'waste', label: 'Sobra Limpa', icon: Trash2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
         { id: 'employees', label: 'Funcionários', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50' },
         { id: 'performance', label: 'Desempenho (BI)', icon: TrendingUp, color: 'text-orange-500', bg: 'bg-orange-50' },
@@ -183,8 +183,8 @@ const ReportsPage = () => {
                                 <tr key={idx} className="hover:bg-emerald-50/30 transition-colors">
                                     <td className="py-4 text-xs font-bold text-slate-600">{new Date(item.date).toLocaleDateString()}</td>
                                     <td className="py-4 text-xs font-black text-slate-900">{item.meal}</td>
-                                    <td className="py-4 text-xs font-bold text-slate-500 text-right">{item.produced.toFixed(1)}</td>
-                                    <td className="py-4 text-xs font-black text-emerald-600 text-right">{item.sobraLimpa.toFixed(1)}</td>
+                                    <td className="py-4 text-xs font-bold text-slate-500 text-right">{(item.produced || 0).toFixed(1)}</td>
+                                    <td className="py-4 text-xs font-black text-emerald-600 text-right">{(item.sobraLimpa || 0).toFixed(1)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -239,11 +239,11 @@ const ReportsPage = () => {
                                         <p className="text-xs font-black text-slate-900">{item.meal}</p>
                                         <p className="text-[10px] text-slate-400 font-bold">{new Date(item.date).toLocaleDateString()}</p>
                                     </td>
-                                    <td className="py-4 text-xs font-black text-blue-600 text-right">{item.acceptability.toFixed(1)}%</td>
-                                    <td className="py-4 text-xs font-bold text-slate-900 text-right">{item.restIngesta.toFixed(1)} kg</td>
+                                    <td className="py-4 text-xs font-black text-blue-600 text-right">{(item.acceptability || 0).toFixed(1)}%</td>
+                                    <td className="py-4 text-xs font-bold text-slate-900 text-right">{(item.restIngesta || 0).toFixed(1)} kg</td>
                                     <td className="py-4 text-right">
-                                        <span className={`text-xs font-black ${item.percentRest > 10 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                            {item.percentRest.toFixed(1)}%
+                                        <span className={`text-xs font-black ${(item.percentRest || 0) > 10 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                            {(item.percentRest || 0).toFixed(1)}%
                                         </span>
                                     </td>
                                 </tr>
