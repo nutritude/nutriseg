@@ -61,6 +61,7 @@ async function seed() {
             role: 'Cozinheiro Líder',
             unitId: unitRefs[0].id,
             active: true,
+            status: 'Ativo',
             health: {
                 lastASO: '2023-01-10', // Vencido
                 coprocultureDate: '2023-01-10',
@@ -74,8 +75,22 @@ async function seed() {
             role: 'Auxiliar de Cozinha',
             unitId: unitRefs[1].id,
             active: true,
+            status: 'Férias',
             health: {
                 lastASO: new Date().toISOString(), // OK
+                coprocultureDate: new Date().toISOString(),
+                coproparasitologyDate: new Date().toISOString(),
+                hygieneTrainingDate: new Date().toISOString()
+            }
+        },
+        {
+            name: 'Pedro Ramos (Demo)',
+            role: 'Auxiliar de Cozinha',
+            unitId: unitRefs[0].id,
+            active: false,
+            status: 'Afastado',
+            health: {
+                lastASO: new Date().toISOString(),
                 coprocultureDate: new Date().toISOString(),
                 coproparasitologyDate: new Date().toISOString(),
                 hygieneTrainingDate: new Date().toISOString()
@@ -188,6 +203,34 @@ async function seed() {
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
         console.log(`Auditoria completa registrada para ${unitRefs.find(u => u.id === s.unitId).name}`);
+    }
+
+    // 6. Solicitações (Manutenção / RH)
+    const requests = [
+        {
+            unitId: unitRefs[0].id,
+            title: 'Infiltração no teto da dispensa',
+            description: 'Necessário reparo urgente devido à chuva.',
+            priority: 'Critico',
+            status: 'Pendente',
+            date: new Date().toISOString()
+        },
+        {
+            unitId: unitRefs[1].id,
+            title: 'Troca de lâmpadas esgotadas',
+            description: 'Setor de cozimento está escuro.',
+            priority: 'Normal',
+            status: 'Concluído',
+            date: new Date().toISOString()
+        }
+    ];
+
+    for (const r of requests) {
+        await db.collection('requests').add({
+            ...r,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`Solicitação registrada para ${unitRefs.find(u => u.id === r.unitId).name}`);
     }
 
     console.log('--- Seed Concluído com Sucesso ---');

@@ -12,6 +12,7 @@ const FinancialController = require('../../interfaces/controllers/FinancialContr
 const LogisticsController = require('../../interfaces/controllers/LogisticsController');
 const RequestController = require('../../interfaces/controllers/RequestController');
 const EventController = require('../../interfaces/controllers/EventController');
+const ReportController = require('../../interfaces/controllers/ReportController');
 
 module.exports = (app) => {
     app.get('/', (req, res) => {
@@ -130,6 +131,13 @@ module.exports = (app) => {
     router.get('/events/materials/availability', EventController.getMaterialsAvailability);
     router.patch('/events/:id/checklist', EventController.updateChecklist);
     router.get('/events/stats/bi', EventController.getReportBI);
+
+    // === Módulo de Relatórios ===
+    router.get('/reports/non-conformities', ReportController.getNonConformities);
+    router.get('/reports/requests', ReportController.getRequests);
+    router.get('/reports/waste', ReportController.getWasteReport);
+    router.get('/reports/employees', ReportController.getEmployeesReport);
+    router.get('/reports/performance', ReportController.getPerformanceReport);
 
     app.use('/api', router);
 };

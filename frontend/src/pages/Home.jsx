@@ -25,6 +25,7 @@ import SanitaryRadar from '../components/dashboard/SanitaryRadar';
 import CriticalTemperatureCard from '../components/dashboard/CriticalTemperatureCard';
 import WasteStackedBar from '../components/dashboard/WasteStackedBar';
 import StructuralAnalysis from '../components/dashboard/StructuralAnalysis';
+import HRAnalytics from '../components/dashboard/HRAnalytics';
 
 const Home = () => {
     const { selectedUnit: activeUnit, selectUnit } = useUnit();
@@ -274,9 +275,14 @@ const Home = () => {
                 <StructuralAnalysis data={kpis?.structural || []} />
             </div>
 
-            {/* Passo 4: Operacional & Desperdício */}
-            <div className="grid grid-cols-1 gap-8 mb-8">
-                <WasteStackedBar data={kpis?.waste?.byUnit || []} />
+            {/* Passo 4: Operacional & RH */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div className="lg:col-span-2">
+                    <WasteStackedBar data={kpis?.waste?.byUnit || []} />
+                </div>
+                <div className="lg:col-span-1">
+                    <HRAnalytics data={kpis?.health?.metrics || {}} />
+                </div>
             </div>
 
             {/* Passo 5: Monitoramento de Ações Corretivas (RH Inaptos) */}

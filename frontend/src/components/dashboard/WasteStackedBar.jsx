@@ -47,7 +47,7 @@ const WasteStackedBar = ({ data }) => {
             </div>
             
             <ResponsiveContainer width="100%" height="80%">
-                <BarChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barGap={0}>
+                <BarChart data={data} margin={{ top: 20, right: 30, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis 
                         dataKey="name" 
@@ -68,9 +68,9 @@ const WasteStackedBar = ({ data }) => {
                         align="right" 
                         wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}
                     />
-                    <Bar dataKey="produzido" name="Produzido" stackId="a" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={40} />
-                    <Bar dataKey="sobra" name="Sobra Limpa" stackId="a" fill="#10b981" barSize={40} />
-                    <Bar dataKey="resto" name="Resto-Ingesta" stackId="a" fill="#ef4444" barSize={40} />
+                    <Bar dataKey="produzido" name="Produzido" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={25} />
+                    <Bar dataKey="sobra" name="Sobra Limpa" fill="#10b981" radius={[6, 6, 0, 0]} barSize={25} />
+                    <Bar dataKey="resto" name="Resto-Ingesta" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={25} />
                 </BarChart>
             </ResponsiveContainer>
         </div>

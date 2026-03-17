@@ -142,11 +142,21 @@ class DashboardController {
 
             const criticalUnitsDetailed = Object.entries(criticalUnitsMap).map(([id, name]) => ({ id, name }));
 
-            // 5. Saúde Ocupacional (RH)
+            // 5. Saúde Ocupacional & RH (Afastamentos, Férias, Inaptos)
             const employees = await Employee.find(filter);
             const totalEmployees = employees.length;
             const healthyEmployees = employees.filter(e => e.healthCompliance.tag === '#em_dia').length;
+            const unfitEmployees = employees.filter(e => e.healthCompliance.tag === '#vencido').length;
             const expiringSoonEmployees = employees.filter(e => e.healthCompliance.tag === '#atencao');
+            
+            const hrMetrics = {
+                aptos: healthyEmployees,
+                inaptos: unfitEmployees,
+                afastados: employees.filter(e => (e.data.status || e.status) === 'Afastado').length,
+                ferias: employees.filter(e => (e.data.status || e.status) === 'Férias').length,
+                total: totalEmployees
+            };
+
             const expiringSoonCount = expiringSoonEmployees.length;
             const healthComplianceRate = totalEmployees > 0 ? (healthyEmployees / totalEmployees) * 100 : 0;
 
@@ -225,7 +235,8 @@ class DashboardController {
                     complianceRate: Math.round(healthComplianceRate),
                     expiringSoon: expiringSoonCount,
                     total: totalEmployees,
-                    units: healthUnitsInAlert
+                    units: healthUnitsInAlert,
+                    metrics: hrMetrics
                 },
                 docs: {
                     expired: expiredDocsCount,
