@@ -1,2 +1,7 @@
 node_modules/
 .env
+.vercel
+backend/src/infrastructure/database/firebase-key.json
+*.log
+backend/seed-db.js
+backend/verify-system.js

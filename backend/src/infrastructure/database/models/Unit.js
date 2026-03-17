@@ -15,6 +15,15 @@ class Unit extends FirestoreModel {
         return data ? new Unit(data) : null;
     }
 
+    static async findByIdAndUpdate(id, updateData) {
+        const data = await super.findByIdAndUpdate('units', id, updateData);
+        return data ? new Unit(data) : null;
+    }
+
+    static async findByIdAndDelete(id) {
+        return await super.findByIdAndDelete('units', id);
+    }
+
     // Geofencing: Validação de localização para início de auditoria
     isWithinRange(userLat, userLng) {
         const uLat = this.data.location?.latitude || this.data.location?.lat;

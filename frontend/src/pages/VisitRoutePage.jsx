@@ -276,7 +276,7 @@ const VisitRoutePage = () => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8"
+            className="w-full"
         >
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                 <div>

@@ -3,6 +3,7 @@ import UnitFormModal from '../components/UnitFormModal';
 import { useUnit } from '../contexts/UnitContext';
 import UnitService from '../services/UnitService';
 import { Building2, Plus, MapPin, AlertTriangle, CheckCircle, FileText, ChefHat, Target } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const UnitsPage = () => {
     const [units, setUnits] = useState([]);
@@ -61,50 +62,51 @@ const UnitsPage = () => {
         if (!unit.sanitaryDocs || unit.sanitaryDocs.length === 0) {
             return { color: 'text-gray-400', icon: FileText, label: 'Sem documentos' };
         }
-
         if (unit.hasExpiredDocs) {
-            return { color: 'text-red-600', icon: AlertTriangle, label: 'Documentos vencidos' };
+            return { color: 'text-red-600', icon: AlertTriangle, label: 'Docs Vencidos' };
         }
-
         if (unit.docsExpiringWithin30Days && unit.docsExpiringWithin30Days.length > 0) {
-            return { color: 'text-yellow-600', icon: AlertTriangle, label: 'Documentos vencendo' };
+            return { color: 'text-yellow-600', icon: AlertTriangle, label: 'Docs Vencendo' };
         }
-
-        return { color: 'text-green-600', icon: CheckCircle, label: 'Documentos OK' };
+        return { color: 'text-green-600', icon: CheckCircle, label: 'Conforme' };
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-slate-500">Carregando unidades...</div>
+            <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full"
+        >
+            {/* Header Padronizado */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-                        <Building2 className="text-blue-600" />
-                        Gestão de Unidades
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        <Building2 size={32} className="text-blue-600" />
+                        Unidades Operacionais
                     </h1>
-                    <p className="text-sm md:text-base text-slate-500 mt-1">
-                        {units.length} unidade{units.length !== 1 ? 's' : ''} cadastrada{units.length !== 1 ? 's' : ''}
+                    <p className="text-slate-500 font-medium mt-1">
+                        Gerenciando {units.length} UANs sob supervisão técnica.
                     </p>
                 </div>
                 <button
                     onClick={handleCreateUnit}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2"
+                    className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
                 >
-                    <Plus size={18} />
+                    <Plus size={20} />
                     Nova Unidade
                 </button>
             </div>
 
-            {/* Units Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Units Grid - Otimizado para Notebook */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {units.map(unit => {
                     const docStatus = getDocumentStatus(unit);
                     const StatusIcon = docStatus.icon;
@@ -113,111 +115,70 @@ const UnitsPage = () => {
                         <div
                             key={unit._id}
                             onClick={() => handleEditUnit(unit)}
-                            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                            className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between h-full min-h-[320px]"
                         >
-                            {/* Header */}
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">
-                                        {unit.name}
-                                    </h3>
-                                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${unit.type === 'Local'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-purple-100 text-purple-700'
-                                        }`}>
-                                        {unit.type}
-                                    </span>
+                            <div>
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex-1">
+                                        <h3 className="font-black text-slate-800 text-xl group-hover:text-blue-600 transition-colors leading-tight mb-2">
+                                            {unit.name}
+                                        </h3>
+                                        <span className={`inline-block px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${unit.type === 'Local'
+                                            ? 'bg-blue-50 text-blue-600'
+                                            : 'bg-purple-50 text-purple-600'
+                                            }`}>
+                                            {unit.type}
+                                        </span>
+                                    </div>
+                                    <div className={`p-3 rounded-2xl bg-slate-50 ${docStatus.color}`}>
+                                        <StatusIcon size={24} />
+                                    </div>
                                 </div>
-                                <StatusIcon size={20} className={docStatus.color} />
+
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                                        <MapPin size={16} className="text-slate-400 mt-0.5 shrink-0" />
+                                        <span className="text-sm font-bold text-slate-600 line-clamp-2">
+                                            {unit.address?.city || 'Cidade não informada'}, {unit.address?.state || '--'}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-50/50 p-3 rounded-xl">
+                                            <span className="block text-[8px] font-black uppercase text-slate-400 mb-1">Responsável</span>
+                                            <span className="text-xs font-black text-slate-700 truncate block">{unit.rtNutritionist || '--'}</span>
+                                        </div>
+                                        <div className="bg-slate-50/50 p-3 rounded-xl">
+                                            <span className="block text-[8px] font-black uppercase text-slate-400 mb-1">CNPJ Unidade</span>
+                                            <span className="text-xs font-black text-slate-700 truncate block">{unit.cnpj || '--'}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Info */}
-                            <div className="space-y-2 text-sm">
-                                <div className="flex items-start gap-2 text-slate-600">
-                                    <MapPin size={14} className="mt-0.5 shrink-0" />
-                                    <span className="line-clamp-2">
-                                        {unit.address?.city || 'Endereço não informado'}, {unit.address?.state || ''}
-                                    </span>
-                                </div>
-                                <div className="text-slate-600">
-                                    <span className="font-medium">RT:</span> {unit.rtNutritionist || 'Não informado'}
-                                </div>
-                                <div className="text-slate-600">
-                                    <span className="font-medium">CNPJ:</span> {unit.cnpj || 'Não informado'}
-                                </div>
-                            </div>
-
-                            {/* Section: Action to select unit */}
-                            <div className="mt-4">
+                            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-3">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         selectUnit(unit);
                                     }}
-                                    className={`w-full py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${selectedUnitContext?._id === unit._id
-                                        ? 'bg-green-100 text-green-700 border border-green-200'
-                                        : 'bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100'
+                                    className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${selectedUnitContext?._id === unit._id
+                                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                                        : 'bg-slate-900 text-white hover:bg-blue-600 shadow-lg shadow-slate-200'
                                         }`}
                                 >
                                     {selectedUnitContext?._id === unit._id ? (
-                                        <>
-                                            <CheckCircle size={16} /> Unidade Ativa
-                                        </>
+                                        <><CheckCircle size={16} /> Foco Ativo</>
                                     ) : (
-                                        <>
-                                            <Target size={16} /> Selecionar Unidade
-                                        </>
+                                        <><Target size={16} /> Selecionar UAN</>
                                     )}
                                 </button>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="mt-4 pt-4 border-t border-slate-100">
-                                {/* Meal Targets */}
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs text-slate-500 font-medium">Meta Diária:</span>
-                                    <span className="text-sm font-bold text-blue-600">
-                                        {(unit.mealTargets?.breakfast || 0) +
-                                            (unit.mealTargets?.lunch || 0) +
-                                            (unit.mealTargets?.dinner || 0) +
-                                            (unit.mealTargets?.supper || 0)} refeições
+                                
+                                <div className="flex justify-between items-center px-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Meta de Produção</span>
+                                    <span className="text-xs font-black text-blue-600">
+                                        {((unit.mealTargets?.breakfast || 0) + (unit.mealTargets?.lunch || 0) + (unit.mealTargets?.dinner || 0)) || 0} Refeições/dia
                                     </span>
-                                </div>
-
-                                {/* Document Status or Map Button */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        {unit.sanitaryDocs && unit.sanitaryDocs.length > 0 && (
-                                            <div className="flex items-center gap-1.5">
-                                                <StatusIcon size={14} className={docStatus.color} />
-                                                <span className={`text-xs ${docStatus.color} font-medium`}>
-                                                    {docStatus.label}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {(!unit.sanitaryDocs || unit.sanitaryDocs.length === 0) && (
-                                            <div className="text-xs text-slate-400 italic">
-                                                Documentos pendentes
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Map Button */}
-                                    {unit.address?.city && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent card click
-                                                const address = `${unit.address.street || ''}, ${unit.address.number || 's/n'}, ${unit.address.neighborhood || ''}, ${unit.address.city} - ${unit.address.state}`;
-                                                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-                                                window.open(mapsUrl, '_blank');
-                                            }}
-                                            className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded hover:bg-green-100 transition-colors flex items-center gap-1 border border-green-200"
-                                        >
-                                            <MapPin size={12} />
-                                            Ver Rota
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         </div>
@@ -227,23 +188,24 @@ const UnitsPage = () => {
 
             {/* Empty State */}
             {units.length === 0 && !loading && (
-                <div className="text-center py-12 bg-white rounded-xl border border-slate-100 shadow-sm">
-                    <Building2 size={64} className="mx-auto text-blue-200 mb-4" />
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">Bem-vindo ao Gestor de Unidades!</h3>
-                    <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                        Cadastre sua primeira unidade para começar a gerenciar refeições, equipe e conformidade sanitária.
+                <div className="text-center py-32 bg-white rounded-[3rem] border border-slate-100 shadow-sm px-10">
+                    <div className="bg-blue-50 w-20 h-20 rounded-3xl flex items-center justify-center text-blue-600 mx-auto mb-8">
+                        <Building2 size={40} />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-900 mb-4">Bem-vindo ao Gestor de Unidades!</h3>
+                    <p className="text-slate-500 mb-10 max-w-sm mx-auto font-medium">
+                        Sua lista de unidades está vazia ou o servidor de dados está sincronizando. 
+                        Tente recarregar ou cadastre sua primeira UAN.
                     </p>
                     <button
                         onClick={handleCreateUnit}
-                        className="bg-blue-600 text-white px-8 py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2 shadow-lg shadow-blue-900/20"
+                        className="bg-blue-600 text-white px-10 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-2xl shadow-blue-500/40"
                     >
-                        <Plus size={20} />
-                        Cadastrar Primeira Unidade
+                        + Cadastrar UAN
                     </button>
                 </div>
             )}
 
-            {/* Modal */}
             {isModalOpen && (
                 <UnitFormModal
                     isOpen={isModalOpen}
@@ -253,7 +215,7 @@ const UnitsPage = () => {
                     unit={selectedUnit}
                 />
             )}
-        </div>
+        </motion.div>
     );
 };
 

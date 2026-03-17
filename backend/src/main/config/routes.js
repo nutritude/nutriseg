@@ -10,6 +10,8 @@ const DashboardController = require('../../interfaces/controllers/DashboardContr
 const WasteController = require('../../interfaces/controllers/WasteController');
 const FinancialController = require('../../interfaces/controllers/FinancialController');
 const LogisticsController = require('../../interfaces/controllers/LogisticsController');
+const RequestController = require('../../interfaces/controllers/RequestController');
+const EventController = require('../../interfaces/controllers/EventController');
 
 module.exports = (app) => {
     app.get('/', (req, res) => {
@@ -25,6 +27,24 @@ module.exports = (app) => {
     // Health Check
     router.get('/health', (req, res) => {
         res.status(200).json({ status: 'OK', timestamp: new Date() });
+    });
+
+    // DEBUG Firebase - REMOVER APÓS DIAGNÓSTICO
+    router.get('/debug-firebase', async (req, res) => {
+        const path = require('path');
+        const fs = require('fs');
+        const keyPath = path.join(__dirname, '../../../infrastructure/database/firebase-key.json');
+        res.json({
+            hasBase64: !!process.env.FIREBASE_KEY_BASE64,
+            base64Length: process.env.FIREBASE_KEY_BASE64 ? process.env.FIREBASE_KEY_BASE64.length : 0,
+            hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+            projectId: process.env.FIREBASE_PROJECT_ID || 'N/A',
+            hasEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+            hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+            privateKeyStart: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.substring(0, 30) : 'N/A',
+            fileExists: fs.existsSync(keyPath),
+            filePath: keyPath,
+        });
     });
 
     // === Módulo Logística e Rotas ===
@@ -97,5 +117,20 @@ module.exports = (app) => {
     router.get('/financial/unit/:unitId', FinancialController.getByUnit);
     router.get('/financial/summary', FinancialController.getReimbursementSummary);
 
+    // === Módulo Solicitações ===
+    router.get('/requests', RequestController.getAll);
+    router.post('/requests', RequestController.create);
+    router.patch('/requests/:id/status', RequestController.updateStatus);
+
+    // === Módulo Agenda de Eventos ===
+    router.get('/events', EventController.getAll);
+    router.post('/events', EventController.create);
+    router.put('/events/:id', EventController.update);
+    router.delete('/events/:id', EventController.delete);
+    router.get('/events/materials/availability', EventController.getMaterialsAvailability);
+    router.patch('/events/:id/checklist', EventController.updateChecklist);
+    router.get('/events/stats/bi', EventController.getReportBI);
+
     app.use('/api', router);
 };
+

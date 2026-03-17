@@ -62,7 +62,7 @@ const ReportsPage = () => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-7xl mx-auto px-4 py-8"
+            className="w-full"
         >
             {/* Header com Filtros */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">

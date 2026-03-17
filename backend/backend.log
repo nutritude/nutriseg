@@ -1,7 +1,9 @@
-[dotenv@17.3.1] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (5) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
 ✅ Firebase Admin Inicializado com Sucesso (Utilizando arquivo firebase-key.json)
 ⏳ Inicializando Conexão com Firebase Firestore...
 ✅ Firebase Firestore Conectado com Sucesso!
 🌐 Banco de Dados em Nuvem Ativado (Modo de Alta Disponibilidade)
 ✅ Servidor rodando na porta 3000
 👨‍⚕️ Skill de Especialista em Saúde Ativada
+(node:1334) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)

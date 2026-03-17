@@ -34,7 +34,7 @@ class UnitController {
             });
         } catch (error) {
             console.error('[GET UNITS ERROR]', error);
-            res.status(500).json({ error: 'Erro ao buscar unidades' });
+            res.status(500).json({ error: 'Erro ao buscar unidades', details: error.message, stack: error.stack });
         }
     }
 

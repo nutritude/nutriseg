@@ -15,6 +15,15 @@ class Employee extends FirestoreModel {
         return data ? new Employee(data) : null;
     }
 
+    static async findByIdAndUpdate(id, updateData) {
+        const data = await super.findByIdAndUpdate('employees', id, updateData);
+        return data ? new Employee(data) : null;
+    }
+
+    static async findByIdAndDelete(id) {
+        return await super.findByIdAndDelete('employees', id);
+    }
+
     get healthCompliance() {
         if (!this.data.hasFoodContact) return { status: 'Apto (Geral)', color: 'green', tag: '#apto' };
         if (!this.data.health) return { status: 'Sem Dados', color: 'gray', tag: '#pendente' };
@@ -53,9 +62,7 @@ class Employee extends FirestoreModel {
 
     toJSON() {
         return {
-            ...this.data,
-            _id: this._id,
-            id: this._id,
+            ...super.toJSON(),
             healthCompliance: this.healthCompliance
         };
     }

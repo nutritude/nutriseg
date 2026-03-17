@@ -131,6 +131,19 @@ class DashboardController {
                     msg: `Temperatura fora do padrão (${log.data.temperature}°C) na unidade selecionada.`,
                     date: new Date(log.data.measurementTime).toLocaleTimeString('pt-BR'),
                     tag: '#critico'
+                })),
+
+                // Novo: Ações Corretivas Pendentes (RH/Inaptos)
+                correctiveActions: employees.filter(e => e.healthCompliance.status === 'Inapto').map(e => ({
+                    id: e._id,
+                    employeeName: e.data.name,
+                    role: e.data.role,
+                    unitName: e.unitId?.data?.name || 'Unidade N/A',
+                    actions: {
+                        training: e.data.correctiveActions?.training || false,
+                        medicalExams: e.data.correctiveActions?.medicalExams || false,
+                        others: e.data.correctiveActions?.others || ''
+                    }
                 }))
             });
         } catch (error) {

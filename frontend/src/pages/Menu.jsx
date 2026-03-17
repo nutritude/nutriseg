@@ -262,10 +262,10 @@ const MenuPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans antialiased">
+        <div className="w-full pb-16 font-sans antialiased">
             {/* Elegant Sticky Header */}
-            <div className="bg-white/80 border-b border-slate-200/60 shadow-sm sticky top-0 z-40 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-6 py-6 md:py-8">
+            <div className="bg-white/80 border-b border-slate-200/60 shadow-sm sticky top-0 z-40 backdrop-blur-xl -mx-4 sm:-mx-6 lg:-mx-8 mb-6">
+                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
                         <div className="flex-1">
                             {activeUnit ? (
@@ -334,7 +334,7 @@ const MenuPage = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 pt-10">
+            <div className="w-full">
                 {!activeUnit && (
                     <div className="flex flex-col items-center justify-center py-32 bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50">
                         <div className="bg-gradient-to-br from-blue-600 to-indigo-700 w-24 h-24 rounded-[28px] flex items-center justify-center text-white shadow-xl mb-10 transform -rotate-6">

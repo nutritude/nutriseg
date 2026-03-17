@@ -4,13 +4,28 @@ const Unit = require('../../infrastructure/database/models/Unit');
 class EmployeeController {
     // Helper to populate employee data
     _populateEmployees = async (employees) => {
-        if (Array.isArray(employees)) {
-            for (let emp of employees) {
-                await emp.populate('unitId', Unit);
+        if (!employees) return employees;
+        const employeeList = Array.isArray(employees) ? employees : [employees];
+        
+        // Coletar IDs de unidades únicos
+        const unitIds = [...new Set(employeeList.map(e => e.data.unitId).filter(id => !!id))];
+        
+        if (unitIds.length === 0) return employees;
+
+        // Buscar todas as unidades necessárias de uma vez
+        const units = await Unit.find({ _id: { in: unitIds } });
+        const unitMap = units.reduce((acc, unit) => {
+            acc[unit._id] = unit;
+            return acc;
+        }, {});
+
+        // Atribuir as unidades aos funcionários (usando a lógica do Model para manter consistência)
+        for (let emp of employeeList) {
+            if (emp.data.unitId && unitMap[emp.data.unitId]) {
+                emp.unitId = unitMap[emp.data.unitId];
             }
-        } else if (employees) {
-            await employees.populate('unitId', Unit);
         }
+
         return employees;
     }
 

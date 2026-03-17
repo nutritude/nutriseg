@@ -48,6 +48,13 @@ const EmployeeFormModal = ({ isOpen, onClose, onSave, employee, units = [], unit
             coprocultureDate: '',
             coproparasitologyDate: '',
             hygieneTrainingDate: ''
+        },
+
+        // Ações Corretivas
+        correctiveActions: {
+            training: false,
+            medicalExams: false,
+            others: ''
         }
     });
 
@@ -80,6 +87,11 @@ const EmployeeFormModal = ({ isOpen, onClose, onSave, employee, units = [], unit
                     coprocultureDate: employee.health?.coprocultureDate ? new Date(employee.health.coprocultureDate).toISOString().split('T')[0] : '',
                     coproparasitologyDate: employee.health?.coproparasitologyDate ? new Date(employee.health.coproparasitologyDate).toISOString().split('T')[0] : '',
                     hygieneTrainingDate: employee.health?.hygieneTrainingDate ? new Date(employee.health.hygieneTrainingDate).toISOString().split('T')[0] : ''
+                },
+                correctiveActions: employee.correctiveActions || {
+                    training: false,
+                    medicalExams: false,
+                    others: ''
                 }
             });
         } else if (unitId) {
@@ -468,6 +480,47 @@ const EmployeeFormModal = ({ isOpen, onClose, onSave, employee, units = [], unit
                                     </div>
                                     <p className="text-xs font-bold text-slate-600 bg-white/50 px-3 py-1 rounded-full">{healthStatus.message}</p>
                                 </div>
+
+                                {/* Seção de Ações Corretivas - Condicional */}
+                                {(healthStatus.status === 'Inapto' || healthStatus.status === 'Apto (Vencendo)') && (
+                                    <div className="mt-6 p-5 bg-orange-50/50 border border-orange-100 rounded-2xl animate-fade-in">
+                                        <h6 className="text-xs font-black text-orange-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <AlertTriangle size={14} /> Monitoramento de Ações Corretivas
+                                        </h6>
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <label className="flex items-center gap-3 bg-white p-3 rounded-xl border border-orange-100 cursor-pointer hover:bg-orange-50 transition-all">
+                                                <input
+                                                    type="checkbox"
+                                                    name="correctiveActions.training"
+                                                    checked={formData.correctiveActions.training}
+                                                    onChange={handleChange}
+                                                    className="w-5 h-5 text-orange-600 rounded"
+                                                />
+                                                <span className="text-xs font-bold text-orange-900">Treinamento Requerido</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 bg-white p-3 rounded-xl border border-orange-100 cursor-pointer hover:bg-orange-50 transition-all">
+                                                <input
+                                                    type="checkbox"
+                                                    name="correctiveActions.medicalExams"
+                                                    checked={formData.correctiveActions.medicalExams}
+                                                    onChange={handleChange}
+                                                    className="w-5 h-5 text-orange-600 rounded"
+                                                />
+                                                <span className="text-xs font-bold text-orange-900">Solicitar Exame Médico</span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-orange-400 uppercase mb-1">Outras Solicitações / Observações</label>
+                                            <textarea
+                                                name="correctiveActions.others"
+                                                value={formData.correctiveActions.others}
+                                                onChange={handleChange}
+                                                placeholder="Descreva aqui outras ações necessárias para regularizar a situação..."
+                                                className="w-full px-4 py-3 bg-white border border-orange-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500 min-h-[80px]"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

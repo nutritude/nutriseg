@@ -3,13 +3,17 @@ import api from './api';
 class EmployeeService {
     // activeOnly: true = só ativos, false = só inativos, null = todos
     async getAllEmployees(activeOnly = true) {
-        const params = activeOnly === null ? {} : { active: activeOnly };
+        const params = {};
+        if (activeOnly !== null) params.active = activeOnly;
+        
         const response = await api.get('/employees', { params });
         return response.data;
     }
 
     async getEmployeesByUnit(unitId, activeOnly = true) {
-        const params = activeOnly === null ? {} : { active: activeOnly };
+        const params = {};
+        if (activeOnly !== null) params.active = activeOnly;
+        
         const response = await api.get(`/employees/unit/${unitId}`, { params });
         return response.data;
     }

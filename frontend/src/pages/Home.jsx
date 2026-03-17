@@ -9,7 +9,9 @@ import {
     FileText,
     Filter,
     ShieldCheck,
-    TrendingUp
+    TrendingUp,
+    Users,
+    CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -68,7 +70,7 @@ const Home = () => {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8"
+            className="w-full"
         >
             {/* Header Estratégico */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
@@ -189,14 +191,69 @@ const Home = () => {
                 ]} />
             </div>
 
-            {/* Passo 5: Feeds de Auditoria */}
+            {/* Passo 5: Monitoramento de Ações Corretivas (RH Inaptos) */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                        <Users className="text-blue-600" />
+                        Ações Corretivas Pendentes (Saúde)
+                    </h2>
+                    <Link to="/equipe" className="text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
+                        Gerenciar Equipe &rarr;
+                    </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {(!kpis?.correctiveActions || kpis.correctiveActions.length === 0) ? (
+                        <div className="col-span-full py-10 text-center bg-green-50/50 rounded-3xl border border-green-100 flex flex-col items-center">
+                            <CheckCircle className="text-green-500 mb-3" size={32} />
+                            <p className="text-sm font-bold text-green-800">Toda a equipe está Apta ou com ações em dia!</p>
+                        </div>
+                    ) : (
+                        kpis.correctiveActions.map(action => (
+                            <div key={action.id} className="bg-white p-6 rounded-3xl border border-orange-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-1 pt-full bg-orange-500 h-full"></div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="h-10 w-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-black">
+                                        {action.employeeName.charAt(0)}
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase bg-orange-50 text-orange-600 px-2 py-1 rounded-lg">#inapto</span>
+                                </div>
+                                <h4 className="font-black text-slate-800 group-hover:text-blue-600 transition-colors">{action.employeeName}</h4>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-4">{action.role} • {action.unitName}</p>
+                                
+                                <div className="space-y-2">
+                                    {action.actions.training && (
+                                        <div className="flex items-center gap-2 text-xs font-bold text-orange-700 bg-orange-50/50 p-2 rounded-lg">
+                                            <ShieldCheck size={14} /> Treinamento Solicitado
+                                        </div>
+                                    )}
+                                    {action.actions.medicalExams && (
+                                        <div className="flex items-center gap-2 text-xs font-bold text-red-700 bg-red-50/50 p-2 rounded-lg">
+                                            <Thermometer size={14} /> Exame Médico Pendente
+                                        </div>
+                                    )}
+                                    {action.actions.others && (
+                                        <div className="flex items-start gap-2 text-xs font-medium text-slate-600 bg-slate-50 p-2 rounded-lg">
+                                            <Info size={14} className="shrink-0 mt-0.5" />
+                                            <span className="italic">"{action.actions.others}"</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Passo 6: Feeds de Auditoria */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
                         <AlertTriangle className="text-orange-500" />
                         Log de Não-Conformidades
                     </h2>
-                    <Link to="/checklists" className="text-sm font-bold text-blue-600 hover:text-blue-500 transition-colors uppercase tracking-wider">
+                    <Link to="/checklist" className="text-sm font-bold text-blue-600 hover:text-blue-500 transition-colors uppercase tracking-wider">
                         Ver Auditoria Completa &rarr;
                     </Link>
                 </div>

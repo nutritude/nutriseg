@@ -5,42 +5,65 @@ const fs = require('fs');
 const initializeFirebase = () => {
     try {
         if (admin.apps.length === 0) {
-            const keyPath = path.join(__dirname, 'firebase-key.json');
+            console.log('📡 [FIREBASE INIT] Iniciando processo de inicialização robusta...');
 
-            if (fs.existsSync(keyPath)) {
-                const serviceAccount = require(keyPath);
-                admin.initializeApp({
-                    credential: admin.credential.cert(serviceAccount)
-                });
-                console.log('✅ Firebase Admin Inicializado com Sucesso (Utilizando arquivo firebase-key.json)');
-            } else {
-                const privateKey = process.env.FIREBASE_PRIVATE_KEY
-                    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-                    : null;
+            let serviceAccount = null;
 
-                if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && privateKey) {
-                    admin.initializeApp({
-                        credential: admin.credential.cert({
-                            projectId: process.env.FIREBASE_PROJECT_ID,
-                            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                            privateKey: privateKey
-                        })
-                    });
-                    console.log('✅ Firebase Admin Inicializado com Sucesso (Utilizando Variáveis de Ambiente)');
-                } else {
-                    console.warn('⚠️  FIREBASE: Credenciais não encontradas. Usando modo de desenvolvimento/mock.');
-                    admin.initializeApp({
-                        projectId: "sistema-uan-dev"
-                    });
+            // === MÉTODO 1: JSON Completo via ENV (Vercel) ===
+            if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+                try {
+                    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+                } catch (e) {
+                    console.error('❌ Erro no parse de FIREBASE_SERVICE_ACCOUNT:', e.message);
                 }
+            }
+
+            // === MÉTODO 2: Arquivo local via require (Prioritário para integridade) ===
+            if (!serviceAccount) {
+                const keyPath = path.join(__dirname, 'firebase-key.json');
+                if (fs.existsSync(keyPath)) {
+                    // require() trata o JSON e quebras de linha nativamente
+                    serviceAccount = require(keyPath);
+                }
+            }
+
+            // === TRATAMENTO DEFINITIVO DA CHAVE ===
+            if (serviceAccount) {
+                // Converte sequências literais '\n' em quebras de linha reais se necessário
+                const privateKey = (serviceAccount.private_key || serviceAccount.privateKey || '')
+                    .replace(/\\n/g, '\n');
+                
+                admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId: serviceAccount.project_id || serviceAccount.projectId,
+                        clientEmail: serviceAccount.client_email || serviceAccount.clientEmail,
+                        privateKey: privateKey
+                    })
+                });
+                console.log('✅ [FIREBASE INIT] Firebase Admin Inicializado para:', serviceAccount.project_id);
+            } else if (process.env.FIREBASE_PRIVATE_KEY) {
+                // Caso existam apenas variáveis individuais
+                admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId: process.env.FIREBASE_PROJECT_ID,
+                        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+                    })
+                });
+                console.log('✅ [FIREBASE INIT] Firebase Admin Inicializado via variáveis individuais.');
+            } else {
+                console.warn('⚠️  [FIREBASE INIT] Nenhuma credencial encontrada. Usando modo default.');
+                admin.initializeApp({
+                    projectId: "sistema-uan-producao"
+                });
             }
         }
         return admin.firestore();
     } catch (error) {
-        console.error('❌ Falha ao inicializar Firebase Admin:', error.message);
-        throw error;
+        console.error('❌ [FIREBASE INIT CRITICAL ERROR]:', error.message);
+        return null;
     }
 };
 
-module.exports = { admin, db: initializeFirebase() };
-
+const db = initializeFirebase();
+module.exports = { admin, db };

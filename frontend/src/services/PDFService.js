@@ -199,6 +199,140 @@ class PDFService {
         doc.text("________________________________", 5, 42);
         doc.text("RESPONSÁVEL PELA COLETA", 5, 46);
     }
+
+    generateRequestOrderPDF(request, auditorName = "Auditor Responsável") {
+        const doc = new jsPDF();
+        const unitName = request.unit?.data?.name || request.unitName || "Unidade N/A";
+
+        // --- Header ---
+        doc.setFillColor(44, 62, 80); // Dark Slate
+        doc.rect(0, 0, 210, 45, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("PEDIDO FORMAL DE PROVISÃO", 15, 20);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`TIPO: ${request.type} | UNIDADE: ${unitName}`, 15, 30);
+        doc.text(`DATA: ${new Date(request.date).toLocaleString('pt-BR')}`, 15, 36);
+
+        // --- Auditor Info ---
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(10);
+        doc.text(`Solicitante: ${request.auditorName || auditorName}`, 150, 60, { align: 'right' });
+
+        // --- Content Section ---
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Detalhes da Solicitação - ${request.type}`, 15, 75);
+
+        let tableHeaders = [['Item/Categoria', 'Especificação', 'Qtd/Motivo']];
+        let tableBody = [];
+
+        if (request.type === 'RH') {
+            tableHeaders = [['Campo', 'Informação']];
+            tableBody = [
+                ['Colaborador', request.employeeName],
+                ['Função', request.role || '-'],
+                ['Tipo de Solicitação', request.rhAction],
+                ['Observação', request.observations || '-']
+            ];
+        } else {
+            tableBody = request.items.map(item => [
+                item.name,
+                item.description || '-',
+                `${item.quantity} ${item.unit || 'un'}`
+            ]);
+            if (request.observations) {
+                tableBody.push([{ content: `Observações: ${request.observations}`, colSpan: 3, styles: { fontStyle: 'italic', textColor: [100, 100, 100] } }]);
+            }
+        }
+
+        autoTable(doc, {
+            startY: 85,
+            head: tableHeaders,
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [52, 152, 219] },
+            styles: { fontSize: 10 }
+        });
+
+        // --- Footer & Signature ---
+        const pageHeight = doc.internal.pageSize.height;
+        
+        // Campo de assinatura
+        doc.setDrawColor(150, 150, 150);
+        doc.line(60, pageHeight - 40, 150, pageHeight - 40);
+        doc.setFontSize(8);
+        doc.text("Assinatura do Auditor / Responsável", 105, pageHeight - 35, { align: 'center' });
+
+        doc.setTextColor(150, 150, 150);
+        doc.text("UAN Gestor - Sistema de Monitoramento Estratégico e Sanitário", 105, pageHeight - 15, { align: 'center' });
+
+        const fileName = `pedido_${request.type.toLowerCase()}_${unitName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+        doc.save(fileName);
+    }
+
+    generatePackingListPDF(event, auditorName = "Responsável Logística") {
+        const doc = new jsPDF();
+        const unitName = event.unitName || "Unidade N/A";
+        const eventDate = new Date(event.date).toLocaleDateString('pt-BR');
+
+        // --- Header ---
+        doc.setFillColor(142, 68, 173); // Amethyst Purple
+        doc.rect(0, 0, 210, 45, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("RELATÓRIO DE CARGA (PACKING LIST)", 15, 20);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`EVENTO: ${event.title} | DATA: ${eventDate}`, 15, 30);
+        doc.text(`DESTINO: ${unitName} | TIPO: ${event.type}`, 15, 36);
+
+        // --- Metadata ---
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(9);
+        doc.text(`Documento gerado para conferência de estoque em: ${new Date().toLocaleString()}`, 15, 55);
+
+        // --- Table ---
+        const tableBody = event.checklist_materials.map(item => [
+            item.name,
+            item.quantity,
+            item.category || '-',
+            '[ ] Separado  [ ] Conferido'
+        ]);
+
+        autoTable(doc, {
+            startY: 65,
+            head: [['Material / Decoração', 'Qtd', 'Categoria', 'Status de Separação']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [155, 89, 182] },
+            columnStyles: {
+                0: { cellWidth: 80 },
+                1: { cellWidth: 20 },
+                2: { cellWidth: 35 },
+                3: { cellWidth: 55, fontSize: 8 }
+            }
+        });
+
+        // --- Footer ---
+        const pageHeight = doc.internal.pageSize.height;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(15, pageHeight - 30, 100, pageHeight - 30);
+        doc.line(110, pageHeight - 30, 195, pageHeight - 30);
+        
+        doc.setFontSize(8);
+        doc.text("Assinatura Saída (Estoque)", 57, pageHeight - 25, { align: 'center' });
+        doc.text("Responsável Recebimento (Auditor)", 152, pageHeight - 25, { align: 'center' });
+
+        doc.setTextColor(150, 150, 150);
+        doc.text("UAN Gestor - Inteligência Logística e Operacional", 105, pageHeight - 10, { align: 'center' });
+
+        doc.save(`packing_list_${event.title.replace(/\s+/g, '_')}_${unitName.replace(/\s+/g, '_')}.pdf`);
+    }
 }
 
 export default new PDFService();

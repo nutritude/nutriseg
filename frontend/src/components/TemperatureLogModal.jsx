@@ -159,6 +159,7 @@ const TemperatureLogModal = ({ isOpen, onClose, meal, unit, onSave }) => {
                                 const targetLabel = isHot ? '≥ 60°C' : isFrozen ? '≤ -12°C' : '≤ 10°C';
                                 const targetColor = isHot ? 'text-orange-600' : isFrozen ? 'text-indigo-600' : 'text-cyan-600';
                                 const iconColor = isHot ? 'bg-orange-50 text-orange-600' : isFrozen ? 'bg-indigo-50 text-indigo-600' : 'bg-cyan-50 text-cyan-600';
+                                const validation = validateCVS5(dish);
 
                                 return (
                                     <div key={dish._id || idx} className={`bg-white p-8 rounded-[36px] border-2 transition-all duration-500 ${validation.needsAction ? 'border-red-100 shadow-xl shadow-red-500/5' : 'border-slate-50 shadow-sm hover:shadow-xl hover:shadow-slate-200/30'}`}>

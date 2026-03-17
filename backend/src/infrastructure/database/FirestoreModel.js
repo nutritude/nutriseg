@@ -26,7 +26,17 @@ class FirestoreModel {
         let query = db.collection(collectionName);
 
         Object.keys(filter).forEach(key => {
-            if (typeof filter[key] !== 'object') {
+            if (typeof filter[key] === 'object' && filter[key] !== null) {
+                // Suporte para operadores como { in: [...] }
+                const operator = Object.keys(filter[key])[0];
+                const value = filter[key][operator];
+                if (['in', '>', '<', '>=', '<=', '!=', 'array-contains'].includes(operator)) {
+                    query = query.where(key, operator, value);
+                } else {
+                    // Fallback para o comportamento anterior ou erro
+                    query = query.where(key, '==', filter[key]);
+                }
+            } else {
                 query = query.where(key, '==', filter[key]);
             }
         });

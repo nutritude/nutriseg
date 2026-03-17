@@ -13,6 +13,7 @@ import VisitRoutePage from './pages/VisitRoutePage';
 import ReportsPage from './pages/ReportsPage';
 import OccurrencesPage from './pages/OccurrencesPage';
 import EventsPage from './pages/EventsPage';
+import InfrastructureAudit from './pages/InfrastructureAudit';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="ocorrencias" element={<OccurrencesPage />} />
             <Route path="agenda" element={<EventsPage />} />
             <Route path="equipe" element={<TeamPage />} />
+            <Route path="infraestrutura" element={<InfrastructureAudit />} />
             <Route path="relatorios" element={<ReportsPage />} />
 
             {/* Módulos Operacionais (Acessíveis via Dashboard ou Links) */}

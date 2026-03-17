@@ -4,11 +4,13 @@ import Sidebar from '../components/Sidebar';
 
 const DashboardLayout = () => {
     return (
-        <div className="flex min-h-screen bg-slate-50">
+        <div className="flex h-screen overflow-hidden bg-slate-50">
+            {/* Sidebar fixa com largura padronizada */}
             <Sidebar />
-            {/* Main content area - responsive margin for sidebar */}
-            <main className="flex-1 md:ml-64 w-full min-h-screen">
-                <div className="p-4 md:p-6 lg:p-8">
+
+            {/* Área principal: scroll independente, nunca sobreposta pela sidebar */}
+            <main className="flex-1 overflow-y-auto min-w-0">
+                <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
                     <Outlet />
                 </div>
             </main>
