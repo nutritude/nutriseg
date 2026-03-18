@@ -309,10 +309,43 @@ const ReportsPage = () => {
                             </div>
                         </div>
 
+                        {data.some(d => !d.isCompliant) && (
+                            <div className="bg-red-600 text-white p-6 rounded-[2rem] flex items-center justify-between shadow-lg relative overflow-hidden mb-8 mt-4">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <AlertTriangle size={18} className="text-red-200 animate-pulse" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Ponto Crítico de Controle IDENTIFICADO</span>
+                                    </div>
+                                    <h4 className="text-xl font-black italic">Risco Biológico Detectado em {data.filter(d => !d.isCompliant).length} Itens</h4>
+                                    <p className="text-[10px] font-bold text-red-100 uppercase mt-1">Gere o PDF para assinatura e tome as medidas corretivas registradas.</p>
+                                </div>
+                                <div className="absolute top-0 right-0 h-full w-1/2 opacity-20 pointer-events-none flex items-center justify-end pr-8">
+                                    <Thermometer size={120} className="rotate-12 translate-x-12" />
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-end px-2 mb-6 mt-8">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-1 px-1 bg-blue-600 rounded-full"></div>
+                                <div>
+                                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest">Listagem de Aferições Técnicas</h4>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{filters.unitId === 'all' ? 'Relatório Geral (Todas as Unidades)' : units.find(u => u._id === filters.unitId)?.name}</p>
+                                </div>
+                            </div>
+                            {filters.unitId !== 'all' && (
+                                <div className="bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100/50">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 text-right">Responsável Técnico (RT)</p>
+                                    <p className="text-[11px] font-black text-slate-900 italic text-right">{units.find(u => u._id === filters.unitId)?.rtNutritionist || '--'}</p>
+                                </div>
+                            )}
+                        </div>
+
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-slate-100">
                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Data/Hora</th>
+                                    <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Unidade & Resp.</th>
                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Item</th>
                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Regime</th>
                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400 text-center">Auditoria</th>
@@ -325,6 +358,12 @@ const ReportsPage = () => {
                                         <td className="py-4">
                                             <p className="text-xs font-bold text-slate-900">{new Date(item.date).toLocaleDateString()}</p>
                                             <p className="text-[10px] text-slate-400 font-bold">{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                        </td>
+                                        <td className="py-4">
+                                            <p className="text-xs font-black text-slate-900 truncate max-w-[150px]">{units.find(u => u._id === item.unitId)?.name || item.unitId}</p>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                                                <UserCircle size={10} /> {units.find(u => u._id === item.unitId)?.rtNutritionist || 'A Definir (RT)'}
+                                            </p>
                                         </td>
                                         <td className="py-4">
                                             <p className="text-xs font-black text-slate-900">{item.item}</p>
@@ -529,6 +568,28 @@ const ReportsPage = () => {
                                 />
                             </div>
                         </div>
+
+                        {filters.unitId !== 'all' && (
+                            <div className="mb-10 p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between animate-fade-in shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-white p-3 rounded-2xl shadow-sm text-blue-600 border border-slate-100">
+                                        <UserCircle size={28} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-0.5">Responsável Técnico (RT) / Gerente</p>
+                                        <h4 className="text-lg font-black text-slate-900 italic tracking-tight">
+                                            {units.find(u => u._id === filters.unitId)?.rtNutritionist || 'Pendente de Atribuição no Cadastro'}
+                                        </h4>
+                                    </div>
+                                </div>
+                                <div className="text-right border-l pl-8 border-slate-200">
+                                    <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-0.5">Identificação da Unidade</p>
+                                    <p className="text-sm font-black text-blue-600 uppercase italic tracking-tighter">
+                                        {units.find(u => u._id === filters.unitId)?.name}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="overflow-x-auto">
                             {renderTable()}

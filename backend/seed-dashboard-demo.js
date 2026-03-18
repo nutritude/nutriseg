@@ -16,6 +16,7 @@ async function seed() {
             address: 'Av. Paulista, 1000, Bela Vista, São Paulo - SP',
             location: { latitude: -23.5614, longitude: -46.6559 },
             active: true,
+            rtNutritionist: 'Dra. Roberta Silva (CRN-3 12345)',
             sanitaryDocs: [{ name: 'Alvará Sanitário', expiryDate: '2023-12-31' }] // Vencido
         },
         {
@@ -23,6 +24,7 @@ async function seed() {
             address: 'Rua Amauri, 250, Itaim Bibi, São Paulo - SP',
             location: { latitude: -23.5855, longitude: -46.6852 },
             active: true,
+            rtNutritionist: 'Dra. Mariana Costa (CRN-3 98765)',
             sanitaryDocs: [{ name: 'Alvará Sanitário', expiryDate: '2025-06-30' }] // OK
         },
         {
@@ -30,6 +32,7 @@ async function seed() {
             address: 'Rua da Consolação, 1500, Consolação, São Paulo - SP',
             location: { latitude: -23.5533, longitude: -46.6533 },
             active: true,
+            rtNutritionist: 'Dr. Felipe Oliveira (CRN-3 44556)',
             sanitaryDocs: [{ name: 'Alvará Sanitário', expiryDate: '2024-01-15' }] // Vencendo agora
         }
     ];
