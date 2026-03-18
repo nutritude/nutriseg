@@ -26,6 +26,7 @@ import CriticalTemperatureCard from '../components/dashboard/CriticalTemperature
 import WasteStackedBar from '../components/dashboard/WasteStackedBar';
 import StructuralAnalysis from '../components/dashboard/StructuralAnalysis';
 import HRAnalytics from '../components/dashboard/HRAnalytics';
+import SituationalRisk from '../components/dashboard/SituationalRisk';
 
 const Home = () => {
     const { selectedUnit: activeUnit, selectUnit } = useUnit();
@@ -268,6 +269,9 @@ const Home = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Passo 2.5: Inteligência Situacional (Risco e Cobertura) */}
+            <SituationalRisk data={kpis?.situational} />
 
             {/* Passo 3: Gráficos Avançados (Radar & Análise Estrutural) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

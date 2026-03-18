@@ -4,6 +4,8 @@ const TemperatureLog = require('../../infrastructure/database/models/Temperature
 const Sample = require('../../infrastructure/database/models/Sample');
 const Employee = require('../../infrastructure/database/models/Employee');
 const { ChecklistSubmission } = require('../../infrastructure/database/models/Checklist');
+const Event = require('../../infrastructure/database/models/Event');
+const RoutePlan = require('../../infrastructure/database/models/RoutePlan');
 
 class DashboardController {
     getKpis = async (req, res) => {
@@ -288,7 +290,56 @@ class DashboardController {
                         impact: 'Fiscalização',
                         desc: `${expiringSoonCount} colaboradores com exames vencendo. Evite multas trabalhistas.`
                     } : null
-                ].filter(Boolean)
+                ].filter(Boolean),
+
+                // 8. Inteligência Preditiva e Situacional (Cruzamento de Dados)
+                situational: await (async () => {
+                    const thirtyDayAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                    const events = await Event.find(filter);
+                    const trainings = events.filter(ev => 
+                        (ev.data.type === 'Treinamento' || ev.data.category === 'Treinamento') &&
+                        new Date(ev.data.date) >= thirtyDayAgo
+                    );
+
+                    const unitRisks = units.map(u => {
+                        let riskScore = 0;
+                        const uId = u._id;
+
+                        // Fator 1: Temperaturas Críticas Recentes (+40 pts)
+                        const hasCriticalTemp = criticalLogs.some(l => l.data.unitId === uId);
+                        if (hasCriticalTemp) riskScore += 40;
+
+                        // Fator 2: Documentação Vencida (+20 pts)
+                        const docs = u.toJSON().documentationStatus;
+                        if (docs.hasExpired) riskScore += 20;
+
+                        // Fator 3: Falta de Treinamento Recente (+25 pts)
+                        const hadRecentTraining = trainings.some(t => t.data.unitId === uId);
+                        if (!hadRecentTraining) riskScore += 25;
+
+                        // Fator 4: Inapto na Equipe (+15 pts)
+                        const hasUnfit = employees.some(e => (e.data.unitId === uId || e.unitId === uId) && e.healthCompliance.status === 'Inapto');
+                        if (hasUnfit) riskScore += 15;
+
+                        return {
+                            id: uId,
+                            name: u.data.name,
+                            riskScore: Math.min(riskScore, 100),
+                            level: riskScore >= 70 ? 'CRÍTICO' : (riskScore >= 40 ? 'ATENÇÃO' : 'BAIXO'),
+                            missingTraining: !hadRecentTraining
+                        };
+                    }).sort((a, b) => b.riskScore - a.riskScore);
+
+                    return {
+                        trainingCoverage: units.length > 0 ? (trainings.length / units.length) * 100 : 0,
+                        highRiskUnits: unitRisks.filter(r => r.riskScore >= 40).slice(0, 5),
+                        alerts: unitRisks.filter(r => r.missingTraining && r.riskScore >= 50).map(r => ({
+                            unitId: r.id,
+                            unitName: r.name,
+                            msg: `Unidade com alto risco (${r.riskScore}%) sem treinamento técnico nos últimos 30 dias.`
+                        }))
+                    };
+                })()
             });
         } catch (error) {
             console.error('[DASHBOARD ERROR]', error);
