@@ -21,12 +21,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import ReportService from '../services/ReportService';
 import UnitService from '../services/UnitService';
+import PDFService from '../services/PDFService';
 import { useUnit } from '../contexts/UnitContext';
 
 const ReportsPage = () => {
     const { selectedUnit: activeUnit } = useUnit();
     const [units, setUnits] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
     const [activeTab, setActiveTab] = useState('non-conformities');
     const [data, setData] = useState([]);
     const [filters, setFilters] = useState({
@@ -101,9 +103,24 @@ const ReportsPage = () => {
         }
     };
 
-    const handleExport = () => {
-        // Mock export
-        alert("Exportando relatório para Excel/PDF...");
+    const handleExport = async () => {
+        if (!data || data.length === 0) {
+            alert("Não há dados para exportar no momento.");
+            return;
+        }
+        
+        try {
+            setExporting(true);
+            const unitInfo = filters.unitId === 'all' ? null : units.find(u => u._id === filters.unitId);
+            // Pequeno delay para garantir que o estado de loading apareça e não trave o thread instantaneamente
+            await new Promise(resolve => setTimeout(resolve, 500));
+            PDFService.generateGeneralReportPDF(data, activeTab, unitInfo);
+        } catch (error) {
+            console.error("Erro ao exportar PDF:", error);
+            alert("Ocorreu um erro ao gerar o PDF. Verifique o console.");
+        } finally {
+            setExporting(false);
+        }
     };
 
     const renderTable = () => {
@@ -424,9 +441,17 @@ const ReportsPage = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-4">
-                    <button onClick={handleExport} className="bg-slate-900 text-white px-8 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-black transition-all flex items-center gap-2">
-                        <Download size={18} />
-                        Exportar Relatório
+                    <button 
+                        onClick={handleExport} 
+                        disabled={exporting}
+                        className={`${exporting ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-black'} text-white px-8 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all flex items-center gap-2`}
+                    >
+                        {exporting ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            <Download size={18} />
+                        )}
+                        {exporting ? 'Gerando Documento...' : 'Exportar Relatório'}
                     </button>
                 </div>
             </div>

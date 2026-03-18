@@ -333,6 +333,110 @@ class PDFService {
 
         doc.save(`packing_list_${event.title.replace(/\s+/g, '_')}_${unitName.replace(/\s+/g, '_')}.pdf`);
     }
+
+    generateGeneralReportPDF(data, activeTab, unitInfo = null) {
+        const doc = new jsPDF();
+        const tabLabels = {
+            'non-conformities': 'Relatório de Inconformidades Sanitárias',
+            'performance': 'Relatório de Desempenho BI (Desperdício)',
+            'requests': 'Relatório de Solicitações (Compras/RH)',
+            'employees': 'Relatório de Equipe e Saúde',
+            'temperatures': 'Relatório Técnico de Termometria CVS 5'
+        };
+
+        const title = tabLabels[activeTab] || 'Relatório Analítico';
+        
+        // Header Background
+        const headerColor = activeTab === 'temperatures' ? [192, 57, 43] : [44, 62, 80];
+        doc.setFillColor(...headerColor);
+        doc.rect(0, 0, 210, 50, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text(title.toUpperCase(), 15, 20);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`UNIDADE: ${unitInfo?.name || 'Geral / Todas as Unidades'}`, 15, 30);
+        doc.text(`RESPONSÁVEL TÉCNICO: ${unitInfo?.rtNutritionist || 'Não Atribuído'}`, 15, 36);
+        doc.text(`DATA DE EXTRAÇÃO: ${new Date().toLocaleString('pt-BR')}`, 15, 42);
+
+        // Body Content
+        let tableHeaders = [];
+        let tableBody = [];
+
+        if (activeTab === 'performance') {
+            tableHeaders = [['Data', 'Refeição', 'Cozinheiro(a)', 'Aceitabilidade', 'Resto-Ingesta', 'Pior Aceitação']];
+            tableBody = data.map(item => [
+                new Date(item.date).toLocaleDateString('pt-BR'),
+                item.meal,
+                item.cookOnDuty || '-',
+                `${(item.acceptability || 0).toFixed(1)}%`,
+                `${(item.restIngesta || 0).toFixed(1)} kg (${(item.percentRest || 0).toFixed(1)}%)`,
+                item.worstFood ? `${item.worstFood.name} (${item.worstFood.kg}kg)` : '-'
+            ]);
+        } else if (activeTab === 'temperatures') {
+            tableHeaders = [['Data/Hora', 'Item (Categoria)', 'Regime', 'Auditoria (°C)', 'Auditor', 'Ação Corretiva']];
+            tableBody = data.map(item => [
+                `${new Date(item.date).toLocaleDateString('pt-BR')} ${new Date(item.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+                `${item.item} (${item.category})`,
+                item.targetTemp,
+                `${item.actualTemp}°C (${item.isCompliant ? 'C' : 'NC'})`,
+                item.auditor,
+                item.isCompliant ? 'Conforme' : (item.correctiveAction || 'PENDENTE DE AÇÃO')
+            ]);
+        } else if (activeTab === 'non-conformities') {
+            tableHeaders = [['Data', 'Questão / Requisito Sanitário', 'Status', 'Observações']];
+            tableBody = data.map(item => [
+                new Date(item.date).toLocaleDateString('pt-BR'),
+                item.question,
+                'NÃO CONFORME',
+                item.comment || '-'
+            ]);
+        } else {
+            // Default simple table
+            tableHeaders = [Object.keys(data[0] || {}).slice(0, 5)];
+            tableBody = data.map(item => Object.values(item).slice(0, 5));
+        }
+
+        autoTable(doc, {
+            startY: 60,
+            head: tableHeaders,
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: headerColor },
+            styles: { fontSize: 8 },
+            alternateRowStyles: { fillColor: [245, 245, 245] }
+        });
+
+        // Summary Statistics if performance/temperature
+        const finalY = doc.lastAutoTable.finalY + 15;
+        if (activeTab === 'temperatures') {
+            const faults = data.filter(d => !d.isCompliant).length;
+            const compliance = data.length > 0 ? ((data.filter(d => d.isCompliant).length / data.length) * 100).toFixed(1) : 100;
+            
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...headerColor);
+            doc.text("RESUMO DE SEGURANÇA ALIMENTAR", 15, finalY);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total de Aferições: ${data.length}`, 15, finalY + 7);
+            doc.text(`Índice de Conformidade Térmica: ${compliance}%`, 15, finalY + 12);
+            doc.setTextColor(faults > 0 ? [192, 57, 43] : [0, 0, 0]);
+            doc.text(`Total de Falhas (NC): ${faults}`, 15, finalY + 17);
+        }
+
+        // Signature area
+        const pageHeight = doc.internal.pageSize.height;
+        doc.line(60, pageHeight - 35, 150, pageHeight - 35);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text("CARIMBO E ASSINATURA DO RESPONSÁVEL TÉCNICO", 105, pageHeight - 30, { align: 'center' });
+        doc.text("Emitido pelo Sistema de Inteligência Alimentar UAN", 105, pageHeight - 10, { align: 'center' });
+
+        doc.save(`relatorio_${activeTab}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    }
 }
 
 export default new PDFService();
