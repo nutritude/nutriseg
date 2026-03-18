@@ -239,10 +239,10 @@ class PDFService {
                 ['Observação', request.observations || '-']
             ];
         } else {
-            tableBody = request.items.map(item => [
-                item.name,
+            tableBody = (request.items || []).map(item => [
+                item.name || 'Item N/D',
                 item.description || '-',
-                `${item.quantity} ${item.unit || 'un'}`
+                `${item.quantity || 0} ${item.unit || 'un'}`
             ]);
             if (request.observations) {
                 tableBody.push([{ content: `Observações: ${request.observations}`, colSpan: 3, styles: { fontStyle: 'italic', textColor: [100, 100, 100] } }]);

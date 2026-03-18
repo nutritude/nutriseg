@@ -243,17 +243,23 @@ const OccurrencesPage = () => {
                                                             <span className="text-[10px] text-slate-400 font-bold">{new Date(req.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-8 py-4 font-bold text-slate-600 text-sm">{req.unitName}</td>
+                                                    <td className="px-8 py-4 font-bold text-slate-600 text-sm">{req.unitName || req.unit?.data?.name || 'Unidade N/A'}</td>
                                                     <td className="px-8 py-4">
                                                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
                                                             req.type === 'RH' ? 'bg-red-50 text-red-600' : 
-                                                            req.type === 'EPIs' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'
+                                                            req.type === 'EPIs' ? 'bg-orange-50 text-orange-600' : 
+                                                            req.type === 'Treinamentos' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
                                                         }`}>
-                                                            {req.type}
+                                                            {req.type || 'Geral'}
                                                         </span>
                                                     </td>
                                                     <td className="px-8 py-4 text-sm text-slate-500 max-w-xs truncate">
-                                                        {req.type === 'RH' ? `${req.rhAction}: ${req.employeeName}` : req.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                                                        {req.type === 'RH' ? 
+                                                            `${req.rhAction || 'Ação RH'}: ${req.employeeName || 'N/A'}` : 
+                                                            (req.items && req.items.length > 0 ? 
+                                                                req.items.map(i => `${i.quantity}x ${i.name}`).join(', ') : 
+                                                                (req.title || req.description || 'Pedido s/ itens'))
+                                                        }
                                                     </td>
                                                     <td className="px-8 py-4">
                                                         <div className="relative group/status">

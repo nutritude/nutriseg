@@ -246,18 +246,24 @@ async function seed() {
     const requests = [
         {
             unitId: unitRefs[0].id,
-            title: 'Infiltração no teto da dispensa',
-            description: 'Necessário reparo urgente devido à chuva.',
+            unitName: unitRefs[0].name,
+            type: 'EPIs',
+            items: [{ name: 'Luvas Vinil', quantity: 20, unit: 'cx' }],
+            title: 'Reposição Emergencial',
+            description: 'Necessário reposição devido ao aumento de demanda.',
             priority: 'Critico',
             status: 'Pendente',
             date: new Date().toISOString()
         },
         {
             unitId: unitRefs[1].id,
-            title: 'Troca de lâmpadas esgotadas',
-            description: 'Setor de cozimento está escuro.',
+            unitName: unitRefs[1].name,
+            type: 'Descartáveis',
+            items: [{ name: 'Papel Toalha', quantity: 10, unit: 'fardo' }],
+            title: 'Insumos de Higiene',
+            description: 'Estoque baixo identificado na última auditoria.',
             priority: 'Normal',
-            status: 'Concluído',
+            status: 'Entregue',
             date: new Date().toISOString()
         }
     ];
