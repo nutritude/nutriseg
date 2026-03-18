@@ -31,6 +31,10 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const WasteStackedBar = ({ data }) => {
+    const processedData = [...(data || [])]
+        .sort((a, b) => ((b.sobra || 0) + (b.resto || 0)) - ((a.sobra || 0) + (a.resto || 0)))
+        .slice(0, 5);
+
     return (
         <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm h-[500px] relative overflow-hidden group">
             <div className="flex justify-between items-start mb-8">
@@ -38,7 +42,7 @@ const WasteStackedBar = ({ data }) => {
                     <h3 className="text-xl font-black text-slate-900 tracking-tight italic flex items-center gap-2">
                         Eficiência Operacional & Desperdício
                     </h3>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Análise Quantitativa por Unidade</p>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Top 5 Unidades Críticas (Volume de Perda)</p>
                 </div>
                 <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Fator Médio</span>
@@ -47,7 +51,7 @@ const WasteStackedBar = ({ data }) => {
             </div>
             
             <ResponsiveContainer width="100%" height="80%">
-                <BarChart data={data} layout="vertical" margin={{ top: 20, right: 30, left: 50, bottom: 0 }}>
+                <BarChart data={processedData} layout="vertical" margin={{ top: 20, right: 30, left: 50, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                     <XAxis 
                         type="number"

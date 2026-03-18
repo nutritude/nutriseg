@@ -15,7 +15,8 @@ import {
     AlertTriangle,
     Clock,
     UserCircle,
-    Thermometer
+    Thermometer,
+    ChefHat
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReportService from '../services/ReportService';
@@ -232,9 +233,10 @@ const ReportsPage = () => {
                         <thead>
                             <tr className="border-b border-slate-100">
                                 <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Data / Refeição</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Unidade & Cozinheiro(a)</th>
                                 <th className="pb-4 text-[10px] font-black uppercase text-slate-400 text-right">Aceitabilidade (%)</th>
                                 <th className="pb-4 text-[10px] font-black uppercase text-slate-400 text-right">Resto-Ingesta (kg)</th>
-                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400 text-right">% Perda</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Pior Aceitação</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -244,12 +246,28 @@ const ReportsPage = () => {
                                         <p className="text-xs font-black text-slate-900">{item.meal}</p>
                                         <p className="text-[10px] text-slate-400 font-bold">{new Date(item.date).toLocaleDateString()}</p>
                                     </td>
+                                    <td className="py-4">
+                                        <p className="text-xs font-black text-slate-900">{units.find(u => u._id === item.unitId)?.name || item.unitId}</p>
+                                        <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-0.5">
+                                            <ChefHat size={10} /> {item.cookOnDuty || 'Não Informado'}
+                                        </p>
+                                    </td>
                                     <td className="py-4 text-xs font-black text-blue-600 text-right">{(item.acceptability || 0).toFixed(1)}%</td>
-                                    <td className="py-4 text-xs font-bold text-slate-900 text-right">{(item.restIngesta || 0).toFixed(1)} kg</td>
-                                    <td className="py-4 text-right">
-                                        <span className={`text-xs font-black ${(item.percentRest || 0) > 10 ? 'text-red-600' : 'text-emerald-600'}`}>
-                                            {(item.percentRest || 0).toFixed(1)}%
+                                    <td className="py-4 text-xs font-bold text-slate-900 text-right">
+                                        {(item.restIngesta || 0).toFixed(1)} kg <br />
+                                        <span className={`text-[9px] font-black ${(item.percentRest || 0) > 10 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                            ({(item.percentRest || 0).toFixed(1)}%)
                                         </span>
+                                    </td>
+                                    <td className="py-4">
+                                        {item.worstFood ? (
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-red-600 uppercase break-words max-w-[120px]">{item.worstFood.name}</span>
+                                                <span className="text-[9px] font-bold text-slate-500">{item.worstFood.kg} kg ({item.worstFood.type})</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-slate-400">S/Registro</span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

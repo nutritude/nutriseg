@@ -162,6 +162,26 @@ class ReportController {
             filtered.forEach(m => {
                 m.data.meals?.forEach(meal => {
                     const stats = meal.stats || {};
+                    
+                    // Acha o prato com maior rejeição/desperdício
+                    let worstDishName = 'Sem Dados';
+                    let maxWaste = 0;
+                    let wasteType = '';
+
+                    if (meal.dishes && meal.dishes.length > 0) {
+                        meal.dishes.forEach(d => {
+                            const rKg = Number(d.operational?.restoKg) || 0;
+                            const sKg = Number(d.operational?.cleanLeftoverKg) || 0;
+                            const totalWaste = rKg + sKg;
+                            
+                            if (totalWaste > maxWaste) {
+                                maxWaste = totalWaste;
+                                worstDishName = d.name;
+                                wasteType = rKg > sKg ? 'Resto-Ingesta Alta' : 'Sobra Limpa Alta';
+                            }
+                        });
+                    }
+
                     reports.push({
                         id: m._id,
                         date: m.data.date,
@@ -171,7 +191,9 @@ class ReportController {
                         contracted: stats.contractedQty || 0,
                         acceptability: stats.contractedQty > 0 ? (stats.servedQty / stats.contractedQty) * 100 : 0,
                         restIngesta: stats.restIngestaKg || 0,
-                        percentRest: stats.servedQty > 0 ? (stats.restIngestaKg / (stats.servedQty * 0.5)) * 100 : 0
+                        percentRest: stats.servedQty > 0 ? (stats.restIngestaKg / (stats.servedQty * 0.5)) * 100 : 0,
+                        cookOnDuty: stats.cookOnDuty || 'Não Informado',
+                        worstFood: maxWaste > 0 ? { name: worstDishName, kg: maxWaste.toFixed(1), type: wasteType } : null
                     });
                 });
             });

@@ -12,6 +12,7 @@ const ServiceClosureModal = ({ isOpen, onClose, onSave, mealData, unit }) => {
         contractedQty: '',
         servedQty: '',
         restIngestaKg: '',
+        cookOnDuty: '',
         comments: ''
     });
 
@@ -37,6 +38,7 @@ const ServiceClosureModal = ({ isOpen, onClose, onSave, mealData, unit }) => {
                 contractedQty: mealData.stats?.contractedQty || unitTarget || '',
                 servedQty: mealData.stats?.servedQty || '',
                 restIngestaKg: mealData.stats?.restIngestaKg || '',
+                cookOnDuty: mealData.stats?.cookOnDuty || '',
                 comments: mealData.stats?.comments || ''
             });
 
@@ -260,6 +262,18 @@ const ServiceClosureModal = ({ isOpen, onClose, onSave, mealData, unit }) => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-lg border shadow-sm">
+                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">Cozinheiro(a) Responsável do Turno</label>
+                                <input 
+                                    type="text" 
+                                    name="cookOnDuty" 
+                                    value={stats.cookOnDuty} 
+                                    onChange={handleStatChange} 
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-100" 
+                                    placeholder="Ex: Maria José, Chef Paulo..." 
+                                />
                             </div>
 
                             <div className="bg-white p-4 rounded-lg border shadow-sm">
