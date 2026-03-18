@@ -123,8 +123,31 @@ async function seed() {
                         servedQty: 400,
                         contractedQty: 450,
                         restIngestaKg: 45.5, // ~9% do produzido
+                        cookOnDuty: 'Chef Maria José',
                         leftoverKg: 10
-                    }
+                    },
+                    dishes: [
+                        {
+                            id: 'd1', name: 'Arroz Branco', category: 'Principal', 
+                            safety: { actualTemp: '65', auditor: 'Carlos Téc. Nutrição', measuredAt: new Date().toISOString() }
+                        },
+                        {
+                            id: 'd2', name: 'Feijão Carioca', category: 'Principal',
+                            safety: { actualTemp: '72', auditor: 'Carlos Téc. Nutrição', measuredAt: new Date().toISOString() }
+                        },
+                        {
+                            id: 'd3', name: 'Carne Ensopada', category: 'Principal',
+                            safety: { actualTemp: '45', auditor: 'Carlos Téc. Nutrição', measuredAt: new Date().toISOString(), deviationReason: 'Falha no banho maria', correctiveAction: 'Reaquecimento imediato' }
+                        },
+                        {
+                            id: 'd4', name: 'Salada de Alface', category: 'Frio',
+                            safety: { actualTemp: '8', auditor: 'Carlos Téc. Nutrição', measuredAt: new Date().toISOString() }
+                        },
+                        {
+                            id: 'd5', name: 'Sorvete de Chocolate', category: 'Sobremesa',
+                            safety: { actualTemp: '-15', auditor: 'Carlos Téc. Nutrição', measuredAt: new Date().toISOString() }
+                        }
+                    ]
                 }
             ]
         },
@@ -139,8 +162,19 @@ async function seed() {
                         servedQty: 295,
                         contractedQty: 300,
                         restIngestaKg: 3.2, // Baixo
+                        cookOnDuty: 'Paulo Cozinheiro',
                         leftoverKg: 2
-                    }
+                    },
+                    dishes: [
+                        {
+                            id: 'd6', name: 'Macarrão Bolonhesa', category: 'Prato Quente',
+                            safety: { actualTemp: '70', arrivalTemp: '72', auditor: 'Joana (RT)', measuredAt: new Date().toISOString() }
+                        },
+                        {
+                            id: 'd7', name: 'Sobremesa Pudim', category: 'Frio',
+                            safety: { actualTemp: '12', arrivalTemp: '9', auditor: 'Joana (RT)', measuredAt: new Date().toISOString(), deviationReason: 'Geladeira perdendo rendimento', correctiveAction: null }
+                        }
+                    ]
                 }
             ]
         }
