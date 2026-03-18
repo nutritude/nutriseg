@@ -30,6 +30,16 @@ class ReportService {
         const response = await api.get('/reports/temperatures', { params });
         return response.data;
     }
+
+    async getVisitsReport(params) {
+        const response = await api.get('/reports/visits', { params });
+        return response.data;
+    }
+
+    async getTrainingsReport(params) {
+        const response = await api.get('/reports/trainings', { params });
+        return response.data;
+    }
 }
 
 export default new ReportService();

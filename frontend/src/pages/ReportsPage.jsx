@@ -16,7 +16,11 @@ import {
     Clock,
     UserCircle,
     Thermometer,
-    ChefHat
+    ChefHat,
+    MapPin,
+    GraduationCap,
+    Image as ImageIcon,
+    Route
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReportService from '../services/ReportService';
@@ -41,12 +45,13 @@ const ReportsPage = () => {
     });
 
     const tabs = [
-        { id: 'non-conformities', label: 'Não-Conformidades', icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50' },
-        { id: 'requests', label: 'Solicitações', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50' },
-        { id: 'waste', label: 'Sobra Limpa', icon: Trash2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-        { id: 'employees', label: 'Funcionários', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-        { id: 'performance', label: 'Desempenho (BI)', icon: TrendingUp, color: 'text-orange-500', bg: 'bg-orange-50' },
+        { id: 'performance', label: 'Desempenho BI (Desper.)', icon: BarChart3, color: 'text-blue-500', bg: 'bg-blue-50' },
         { id: 'temperatures', label: 'Termometria CVS', icon: Thermometer, color: 'text-cyan-500', bg: 'bg-cyan-50' },
+        { id: 'visits', label: 'Visitas (Reembolso)', icon: MapPin, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+        { id: 'trainings', label: 'Treinamentos', icon: GraduationCap, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+        { id: 'non-conformities', label: 'Inconformidades Sanit.', icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50' },
+        { id: 'requests', label: 'Solicitações (Compras)', icon: FileText, color: 'text-amber-500', bg: 'bg-amber-50' },
+        { id: 'employees', label: 'Equipe e Saúde', icon: Users, color: 'text-purple-500', bg: 'bg-purple-50' },
     ];
 
     useEffect(() => {
@@ -91,6 +96,12 @@ const ReportsPage = () => {
                     break;
                 case 'temperatures':
                     res = await ReportService.getTemperaturesReport(params);
+                    break;
+                case 'visits':
+                    res = await ReportService.getVisitsReport(params);
+                    break;
+                case 'trainings':
+                    res = await ReportService.getTrainingsReport(params);
                     break;
                 default:
                     res = [];
@@ -420,6 +431,127 @@ const ReportsPage = () => {
                             </tbody>
                         </table>
                     </div>
+                );
+            case 'visits':
+                return (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-slate-100">
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Data</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Unidade</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Rota (Ida/Volta)</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">KM</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Pedágio</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Anexos</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {data.map(item => (
+                                <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
+                                    <td className="py-4 font-black text-slate-800 text-xs italic">
+                                        {new Date(item.date).toLocaleDateString('pt-BR')}
+                                    </td>
+                                    <td className="py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] font-black">
+                                                {item.unitName.substring(0,2).toUpperCase()}
+                                            </div>
+                                            <span className="text-xs font-black text-slate-700">{item.unitName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-1">
+                                                <Route size={10} className="text-blue-500" />
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase">Ida: {item.routeIda}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Route size={10} className="text-emerald-500" />
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase">Volta: {item.routeVolta}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-4 font-black text-slate-900 text-xs italic">
+                                        {item.kmTotal} km
+                                    </td>
+                                    <td className="py-4 font-black text-blue-600 text-xs italic">
+                                        R$ {item.tollCosts.toFixed(2)}
+                                    </td>
+                                    <td className="py-4">
+                                        <div className="flex gap-1">
+                                            {item.tollReceipts?.length > 0 ? (
+                                                <button className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                                                    <ImageIcon size={14} />
+                                                </button>
+                                            ) : (
+                                                <span className="text-[10px] font-bold text-slate-300 uppercase">Nenhum</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                );
+            case 'trainings':
+                return (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-slate-100">
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Data</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Unidade</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Tema / Duração</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Status</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400">Participantes</th>
+                                <th className="pb-4 text-[10px] font-black uppercase text-slate-400 text-center">Evidências</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {data.map(item => (
+                                <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
+                                    <td className="py-4 font-black text-slate-800 text-xs italic">
+                                        {new Date(item.date).toLocaleDateString('pt-BR')}
+                                    </td>
+                                    <td className="py-4">
+                                        <span className="text-xs font-black text-slate-700">{item.unitName}</span>
+                                    </td>
+                                    <td className="py-4">
+                                        <div>
+                                            <p className="text-xs font-black text-slate-900 italic uppercase">{item.theme}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                                <Clock size={10} /> {item.duration}
+                                            </p>
+                                        </div>
+                                    </td>
+                                    <td className="py-4">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
+                                            item.status === 'Realizado' ? 'bg-emerald-100 text-emerald-700' : 
+                                            item.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                        }`}>
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 font-black text-slate-900 text-xs text-center border-l border-slate-50">
+                                        {item.participants}
+                                    </td>
+                                    <td className="py-4">
+                                        <div className="flex justify-center gap-1">
+                                            {item.photos?.length > 0 ? (
+                                                <button className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors relative">
+                                                    <ImageIcon size={14} />
+                                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                                                        {item.photos.length}
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                <span className="text-[10px] font-bold text-slate-300 uppercase">Sem Fotos</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 );
             default:
                 return null;

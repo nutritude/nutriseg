@@ -270,6 +270,87 @@ async function seed() {
         console.log(`Solicitação registrada para ${unitRefs.find(u => u.id === r.unitId).name}`);
     }
 
+    // 7. Eventos de Treinamento
+    const events = [
+        {
+            unitId: unitRefs[0].id,
+            unitName: unitRefs[0].name,
+            type: 'Treinamento',
+            title: 'Higiene e Manipulação de Alimentos',
+            duration: '120 min',
+            status: 'Realizado',
+            participantsCount: 15,
+            date: new Date().toISOString(),
+            eventPhotos: ['https://placehold.co/600x400?text=Treinamento+Higiene']
+        },
+        {
+            unitId: unitRefs[1].id,
+            unitName: unitRefs[1].name,
+            type: 'Treinamento',
+            title: 'Segurança no Trabalho (EPIs)',
+            duration: '60 min',
+            status: 'Realizado',
+            participantsCount: 8,
+            date: new Date().toISOString(),
+            eventPhotos: ['https://placehold.co/600x400?text=Treinamento+EPIs']
+        },
+        {
+            unitId: unitRefs[2].id,
+            unitName: unitRefs[2].name,
+            type: 'Treinamento',
+            title: 'Prevenção de Incêndio',
+            duration: '90 min',
+            status: 'Agendado',
+            date: new Date(Date.now() + 86400000).toISOString(),
+            participantsCount: 0
+        }
+    ];
+
+    for (const ev of events) {
+        await db.collection('events').add({
+            ...ev,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    console.log('Eventos de treinamento semeados.');
+
+    // 8. Rotas de Visita (Reembolso)
+    const routePlans = [
+        {
+            origin: 'Sede Administrativa',
+            date: new Date().toISOString(),
+            visits: [
+                {
+                    unitId: unitRefs[0].id,
+                    unitName: unitRefs[0].name,
+                    routeIda: 'Sede -> Hospital Central',
+                    routeVolta: 'Hospital Central -> Sede',
+                    kmVisit: 15.5,
+                    tollCosts: 18.50,
+                    tollReceipts: ['https://placehold.co/400x600?text=Pedagio+01'],
+                    status: '#concluido'
+                },
+                {
+                    unitId: unitRefs[1].id,
+                    unitName: unitRefs[1].name,
+                    routeIda: 'Hospital Central -> Restaurante Tech',
+                    routeVolta: 'Restaurante Tech -> Sede',
+                    kmVisit: 8.2,
+                    tollCosts: 0,
+                    status: '#concluido'
+                }
+            ]
+        }
+    ];
+
+    for (const rp of routePlans) {
+        await db.collection('route_plans').add({
+            ...rp,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    console.log('Planos de rota semeados.');
+
     console.log('--- Seed Concluído com Sucesso ---');
     process.exit(0);
 }

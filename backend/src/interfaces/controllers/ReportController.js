@@ -3,6 +3,8 @@ const Unit = require('../../infrastructure/database/models/Unit');
 const Employee = require('../../infrastructure/database/models/Employee');
 const { ChecklistSubmission } = require('../../infrastructure/database/models/Checklist');
 const Request = require('../../infrastructure/database/models/Request');
+const Event = require('../../infrastructure/database/models/Event');
+const RoutePlan = require('../../infrastructure/database/models/RoutePlan');
 
 class ReportController {
     // Helper to get date filters
@@ -269,6 +271,76 @@ class ReportController {
             reports.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             res.json(reports);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    // 7. Relatório de Visitas (Reembolso)
+    getVisitsReport = async (req, res) => {
+        try {
+            const { unitId, period, startDate, endDate } = req.query;
+            const { start, end } = this.getDateFilter(period, startDate, endDate);
+            
+            const routePlans = await RoutePlan.find();
+            const reports = [];
+
+            routePlans.forEach(plan => {
+                const date = new Date(plan.data.date || plan.data.createdAt);
+                if (date < start || date > end) return;
+
+                const visits = plan.data.visits || [];
+                visits.forEach(v => {
+                    const matchUnit = !unitId || unitId === 'all' || v.unitId === unitId;
+                    if (!matchUnit) return;
+
+                    reports.push({
+                        id: plan._id + v.unitId,
+                        date: plan.data.date || plan.data.createdAt,
+                        unitId: v.unitId,
+                        unitName: v.unitName,
+                        routeIda: v.routeIda || plan.data.origin || 'Base',
+                        routeVolta: v.routeVolta || plan.data.origin || 'Base',
+                        kmTotal: v.kmVisit || 0,
+                        tollCosts: v.tollCosts || 0,
+                        tollReceipts: v.tollReceipts || [],
+                        status: v.status
+                    });
+                });
+            });
+
+            res.json(reports);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    // 8. Relatório de Treinamentos
+    getTrainingsReport = async (req, res) => {
+        try {
+            const { unitId, period, startDate, endDate } = req.query;
+            const { start, end } = this.getDateFilter(period, startDate, endDate);
+            
+            const events = await Event.find();
+            const filtered = events.filter(ev => {
+                const date = new Date(ev.data.date || ev.data.createdAt);
+                const isTraining = ev.data.type === 'Treinamento' || ev.data.category === 'Treinamento';
+                const matchUnit = !unitId || unitId === 'all' || ev.data.unitId === unitId;
+                const matchDate = date >= start && date <= end;
+                return isTraining && matchUnit && matchDate;
+            });
+
+            res.json(filtered.map(ev => ({
+                id: ev._id,
+                date: ev.data.date,
+                unitId: ev.data.unitId,
+                theme: ev.data.title || ev.data.theme,
+                duration: ev.data.duration || '0 min',
+                status: ev.data.status || 'Agendado',
+                participants: ev.data.participantsCount || 0,
+                photos: ev.data.eventPhotos || [],
+                unitName: ev.data.unitName || 'N/A'
+            })));
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

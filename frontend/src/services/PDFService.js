@@ -341,7 +341,9 @@ class PDFService {
             'performance': 'Relatório de Desempenho BI (Desperdício)',
             'requests': 'Relatório de Solicitações (Compras/RH)',
             'employees': 'Relatório de Equipe e Saúde',
-            'temperatures': 'Relatório Técnico de Termometria CVS 5'
+            'temperatures': 'Relatório Técnico de Termometria CVS 5',
+            'visits': 'Relatório de Visitas e Reembolso de KM',
+            'trainings': 'Relatório de Treinamentos e Capacitação'
         };
 
         const title = tabLabels[activeTab] || 'Relatório Analítico';
@@ -394,6 +396,24 @@ class PDFService {
                 'NÃO CONFORME',
                 item.comment || '-'
             ]);
+        } else if (activeTab === 'visits') {
+            tableHeaders = [['Data', 'Unidade', 'Rota (Ida/Volta)', 'KM', 'Pedágio']];
+            tableBody = data.map(item => [
+                new Date(item.date).toLocaleDateString('pt-BR'),
+                item.unitName,
+                `IDA: ${item.routeIda}\nVOLTA: ${item.routeVolta}`,
+                `${item.kmTotal} km`,
+                `R$ ${item.tollCosts.toFixed(2)}`
+            ]);
+        } else if (activeTab === 'trainings') {
+            tableHeaders = [['Data', 'Unidade', 'Tema / Duração', 'Status', 'Partic.']];
+            tableBody = data.map(item => [
+                new Date(item.date).toLocaleDateString('pt-BR'),
+                item.unitName,
+                `${item.theme} (${item.duration})`,
+                item.status,
+                item.participants
+            ]);
         } else {
             // Default simple table
             tableHeaders = [Object.keys(data[0] || {}).slice(0, 5)];
@@ -425,6 +445,36 @@ class PDFService {
             doc.text(`Índice de Conformidade Térmica: ${compliance}%`, 15, finalY + 12);
             doc.setTextColor(faults > 0 ? [192, 57, 43] : [0, 0, 0]);
             doc.text(`Total de Falhas (NC): ${faults}`, 15, finalY + 17);
+        } else if (activeTab === 'trainings') {
+            const totalTrainings = data.length;
+            const completed = data.filter(d => d.status === 'Realizado').length;
+            const totalParticipants = data.reduce((sum, d) => sum + (d.participants || 0), 0);
+            const totalHours = data.reduce((sum, d) => {
+                const mins = parseInt(d.duration) || 0;
+                return sum + mins;
+            }, 0);
+
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...headerColor);
+            doc.text("RESUMO DE CAPACITAÇÃO", 15, finalY);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total de Treinamentos: ${totalTrainings}`, 15, finalY + 7);
+            doc.text(`Treinamentos Realizados: ${completed}`, 15, finalY + 12);
+            doc.text(`Total de Participantes: ${totalParticipants}`, 15, finalY + 17);
+            doc.text(`Carga Horária Total: ${Math.floor(totalHours / 60)}h ${totalHours % 60}min`, 15, finalY + 22);
+        } else if (activeTab === 'visits') {
+            const totalKm = data.reduce((sum, d) => sum + (d.kmTotal || 0), 0);
+            const totalTolls = data.reduce((sum, d) => sum + (d.tollCosts || 0), 0);
+            
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...headerColor);
+            doc.text("RESUMO PARA REEMBOLSO", 15, finalY);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total KM Percorrido: ${totalKm.toFixed(1)} km`, 15, finalY + 7);
+            doc.text(`Total de Pedágios: R$ ${totalTolls.toFixed(2)}`, 15, finalY + 12);
+            doc.text(`Total Geral: R$ ${(totalKm * 1.2 + totalTolls).toFixed(2)} (Ref: R$ 1,20/km)`, 15, finalY + 17);
         }
 
         // Signature area
